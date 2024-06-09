@@ -28,4 +28,8 @@ Then('title should be {string}', function (expectedTitle) {
 
 When('log', function () {
     cy.log('log', 'log');
-})
+});
+
+When('fail', function (){
+    throw new Error('intentional error');
+});

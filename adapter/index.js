@@ -3,7 +3,6 @@ const {
     writeFileSync,
     readFileSync,
 } = require('fs-extra');
-const chokidar = require('chokidar');
 const { randomUUID } = require('node:crypto');
 const { AstBuilder, compile, GherkinClassicTokenMatcher, Parser } = require('@cucumber/gherkin');
 const cyBrowserify = require('@cypress/browserify-preprocessor')()
@@ -16,6 +15,16 @@ const parser = new Parser(builder, matcher)
 function adapter(testCases) {
     return `
         const tests = ${JSON.stringify(testCases)};
+
+        function keyword(step) {
+            switch (step.type) {
+                case 'Context': return 'Given';
+                case 'Action': return 'When';
+                case 'Outcome': return 'Then';
+                default: return 'Step';
+            }
+        }
+        
         function executeStep(pickle, world) {
             if (pickle.argument && pickle.argument.dataTable) {
                 Cypress.log({ displayName: 'DataTable', message: pickle.argument.dataTable })
@@ -41,33 +50,48 @@ function adapter(testCases) {
             describe('Scenario: ' + test.name, { testIsolation: false }, function () {
                 const world = new supportCodeLibrary.World();
                 let skip = false;
+                let result = 'passed';
                 afterEach(function() {
                     if (this.step) {
                         for (const afterStep of supportCodeLibrary.afterTestStepHookDefinitions) {
                             if (afterStep.appliesToTestCase(this.step)) {
-                                afterStep.code.apply(world) 
+                                afterStep.code.apply(world, [{
+                                    pickle: test, 
+                                    pickleStep: this.step,
+                                    gherkinDocument: tests,
+                                    result: this.currentTest.state
+                                }]) 
                             }
                         }  
                     }
                     if (this.currentTest.state !== 'passed') {
                         skip = true;
                     }
+                    result = this.currentTest.state;
                 });
                 for (const beforeTest of supportCodeLibrary.beforeTestCaseHookDefinitions) {
                     if (beforeTest.appliesToTestCase(test)) {
                         it(beforeTest.name, function () {
                             if (skip) return this.skip(); 
-                            beforeTest.code.apply(world) 
+                            beforeTest.code.apply(world, [{
+                                pickle: test,
+                                gherkinDocument: tests,
+                                willBeRetried: false
+                            }]); 
                         });
                     }
                 }
                 for (const step of test.steps) {
-                    it(step.text, function () {
+                    it(keyword(step) + ': ' + step.text, function () {
                         this.step = step;
                         if (skip) return this.skip();
                         for (const beforeStep of supportCodeLibrary.beforeTestStepHookDefinitions) {
                             if (beforeStep.appliesToTestCase(step)) {
-                                beforeStep.code.apply(world) 
+                                beforeStep.code.apply(world, [{
+                                    pickle: test, 
+                                    pickleStep: step,
+                                    gherkinDocument: tests
+                                }]); 
                             }
                         } 
                         executeStep(step, world);
@@ -76,7 +100,12 @@ function adapter(testCases) {
                 for (const afterTest of supportCodeLibrary.afterTestCaseHookDefinitions) {
                     if (afterTest.appliesToTestCase(test)) {
                         it(afterTest.name, function () {
-                            afterTest.code.apply(world)
+                            afterTest.code.apply(world, [{
+                                pickle: test,
+                                result,
+                                gherkinDocument: tests,
+                                willBeRetried: false
+                            }])
                         });
                     }
                 }
