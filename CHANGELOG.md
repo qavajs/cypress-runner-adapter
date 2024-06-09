@@ -10,5 +10,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 :pencil: - chore
 :microscope: - experimental
 
+## [0.1.1]
+- :beetle: changed browserify to webpack
+
 ## [0.1.0]
 - :rocket: initial implementation
