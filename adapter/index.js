@@ -17,8 +17,11 @@ function adapter(testCases) {
     return `
         const tests = ${JSON.stringify(testCases)};
         function executeStep(pickle, world) {
-            if (pickle.argument) {
-                Cypress.log({ displayName: 'Argument', message: pickle.argument })
+            if (pickle.argument && pickle.argument.dataTable) {
+                Cypress.log({ displayName: 'DataTable', message: pickle.argument.dataTable })
+            }
+            if (pickle.argument && pickle.argument.docString) {
+                Cypress.log({ displayName: 'Multiline', message: pickle.argument.docString.content })
             }
             const steps = supportCodeLibrary.stepDefinitions
                 .filter(stepDefinition => stepDefinition.matchesStepName(pickle.text));
@@ -36,7 +39,6 @@ function adapter(testCases) {
         }
         for (const test of tests) {
             describe('Scenario: ' + test.name, { testIsolation: false }, function () {
-                Cypress.log({ displayName: 'Tags', message: test.tags })
                 const world = new supportCodeLibrary.World();
                 let skip = false;
                 afterEach(function() {
@@ -88,26 +90,10 @@ module.exports = async function cucumber(file) {
     if (!filePath.endsWith('.feature')) {
         return cyBrowserify(file)
     }
-    if (shouldWatch) {
-        const watcher = chokidar.watch(filePath);
-        watcher.on('change', () => {
-            const gherkinDocument = parser.parse(readFileSync(filePath, 'utf-8'));
-            const testCases = compile(gherkinDocument, filePath, uuidFn);
-            ensureFileSync(outputPath);
-            writeFileSync(outputPath, adapter(testCases), 'utf8');
-            file.emit('rerun');
-        });
-
-        file.on('close', () => {
-            watcher.close()
-        })
-
-        return outputPath
-    }
     const gherkinDocument = parser.parse(readFileSync(filePath, 'utf-8'));
     const testCases = compile(gherkinDocument, filePath, uuidFn);
     ensureFileSync(outputPath);
-    writeFileSync(outputPath, adapter(testCases), 'utf8');
+    writeFileSync(outputPath, adapter(testCases), 'utf-8');
 
     return outputPath
 }

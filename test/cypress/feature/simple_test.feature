@@ -8,6 +8,7 @@ Feature: test feature
     Given data table step
       | 1 |
       | 2 |
+      | 3 |
 
   @tagged
   Scenario: multiline
