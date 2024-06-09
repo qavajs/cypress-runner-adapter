@@ -6,6 +6,7 @@ import StepDefinition from './step_definition';
 import {SourcedParameterTypeRegistry} from './sourced_parameter_type_registry';
 import TestCaseHookDefinition from './test_case_hook_definition';
 import TestStepHookDefinition from './test_step_hook_definition';
+import {buildParameterType} from './build_parameter_type';
 class World {}
 
 const supportCodeLibrary = {
@@ -85,6 +86,11 @@ export function AfterStep(optionsOrCode, code) {
 
 export function setWorldConstructor(world) {
     supportCodeLibrary.World = world;
+}
+
+export function defineParameterType(options) {
+    const parameterType = buildParameterType(options)
+    supportCodeLibrary.parameterTypeRegistry.defineSourcedParameterType(parameterType, {})
 }
 
 
