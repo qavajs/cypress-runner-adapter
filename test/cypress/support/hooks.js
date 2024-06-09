@@ -1,4 +1,4 @@
-import {After, AfterStep, Before, BeforeStep} from '../../../supportCodeLibrary';
+import {After, AfterStep, Before, BeforeStep} from '../../../index';
 
 BeforeStep(function (obj) {
     cy.log(obj);

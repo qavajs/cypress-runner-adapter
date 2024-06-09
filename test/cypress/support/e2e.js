@@ -1,5 +1,12 @@
 import './hooks';
-import { When, Given, Then } from '../../../index';
+import './parameter_types';
+import { When, Given, Then, setWorldConstructor } from '../../../index';
+
+setWorldConstructor(class {
+    constructor() {
+        this.inWorld = false;
+    }
+});
 
 When(`open {string} url`, function (url){
     cy.visit(url);
@@ -32,4 +39,19 @@ When('log', function () {
 
 When('fail', function (){
     throw new Error('intentional error');
+});
+
+When('modify value from world', function (){
+    this.inWorld = true;
+});
+When('check value from world', function (){
+    cy.wrap(this.inWorld).should('be.true');
+});
+
+When('print {color}', function (color) {
+    Cypress.log({
+        displayName: 'Color',
+        message: color,
+        consoleProps: () => color,
+    });
 });

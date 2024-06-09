@@ -28,4 +28,18 @@ Feature: test feature
 
   Scenario: duplicate
     Given log
-    Then fail
+
+  Scenario: world
+    When modify value from world
+    Then check value from world
+
+  Scenario: parameter type
+    When print blue
+
+  Scenario: skipped steps
+    When simple step
+    #When fail
+    When simple step
+    When simple step
+    When simple step
+    When simple step
