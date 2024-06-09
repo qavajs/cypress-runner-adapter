@@ -5,7 +5,7 @@ const {
 } = require('fs-extra');
 const { randomUUID } = require('node:crypto');
 const { AstBuilder, compile, GherkinClassicTokenMatcher, Parser } = require('@cucumber/gherkin');
-const cyBrowserify = require('@cypress/browserify-preprocessor')()
+const webpackPreprocessor = require('@cypress/webpack-preprocessor')();
 
 const uuidFn = () => randomUUID();
 const builder = new AstBuilder(uuidFn)
@@ -117,7 +117,7 @@ function adapter(testCases) {
 module.exports = async function cucumber(file) {
     const { filePath, outputPath, shouldWatch } = file;
     if (!filePath.endsWith('.feature')) {
-        return cyBrowserify(file)
+        return webpackPreprocessor(file)
     }
     const gherkinDocument = parser.parse(readFileSync(filePath, 'utf-8'));
     const testCases = compile(gherkinDocument, filePath, uuidFn);
