@@ -20,10 +20,12 @@ Feature: test feature
 
   Scenario: log
     Given log
-    Given simple step
+    When simple step
+    Then simple step
 
   Scenario: duplicate
     Given log
 
   Scenario: duplicate
     Given log
+    Then fail

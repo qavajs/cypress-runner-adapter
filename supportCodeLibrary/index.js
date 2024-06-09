@@ -46,7 +46,8 @@ export function Given(pattern, code) {
 }
 
 export function Before(optionsOrCode, code) {
-    const options = code ? optionsOrCode : { name: 'Before' };
+    const defaultOptions = { name: 'Before' };
+    const options = code ? Object.assign(defaultOptions, optionsOrCode) : defaultOptions;
     const handler = code ?? optionsOrCode;
     supportCodeLibrary.beforeTestCaseHookDefinitions.push(new TestCaseHookDefinition({
         code: handler,
@@ -55,7 +56,8 @@ export function Before(optionsOrCode, code) {
 }
 
 export function After(optionsOrCode, code) {
-    const options = code ? optionsOrCode : { name: 'After' };
+    const defaultOptions = { name: 'After' };
+    const options = code ? Object.assign(defaultOptions, optionsOrCode) : defaultOptions;
     const handler = code ?? optionsOrCode;
     supportCodeLibrary.afterTestCaseHookDefinitions.push(new TestCaseHookDefinition({
         code: handler,

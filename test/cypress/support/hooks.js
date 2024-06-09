@@ -1,21 +1,21 @@
 import {After, AfterStep, Before, BeforeStep} from '../../../supportCodeLibrary';
 
-BeforeStep(function () {
-    cy.log('Before Step');
+BeforeStep(function (obj) {
+    cy.log(obj);
 });
 
-// AfterStep(function () {
-//     cy.log('After Step');
-// });
-
-Before(function () {
-    cy.log('Before');
+AfterStep(function (obj) {
+    cy.log(obj);
 });
 
-Before({ tags: '@tagged', name: 'Name hook' }, function () {
-    cy.log('Before');
+Before(function (obj) {
+    cy.log(obj);
 });
 
-After(function () {
-    cy.log('After');
+Before({ tags: '@tagged' }, function (obj) {
+    cy.log(obj);
+});
+
+After(function (obj) {
+    cy.log(obj);
 });
