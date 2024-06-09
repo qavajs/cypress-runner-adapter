@@ -3,7 +3,7 @@ const {
     writeFileSync,
     readFileSync,
 } = require('fs-extra');
-const { dirname } = require('node:path');
+const chokidar = require('chokidar');
 const { randomUUID } = require('node:crypto');
 const { AstBuilder, compile, GherkinClassicTokenMatcher, Parser } = require('@cucumber/gherkin');
 const cyBrowserify = require('@cypress/browserify-preprocessor')()
@@ -13,14 +13,8 @@ const builder = new AstBuilder(uuidFn)
 const matcher = new GherkinClassicTokenMatcher();
 const parser = new Parser(builder, matcher)
 
-module.exports = async function cucumber(file) {
-    const { filePath, outputPath, shouldWatch } = file;
-    if (!filePath.endsWith('.feature')) {
-        return cyBrowserify(file)
-    }
-    const gherkinDocument = parser.parse(readFileSync(filePath, 'utf-8'));
-    const testCases = compile(gherkinDocument, filePath, uuidFn);
-    const adapter = `
+function adapter(testCases) {
+    return `
         const tests = ${JSON.stringify(testCases)};
         function executeStep(pickle, world) {
             if (pickle.argument) {
@@ -87,8 +81,33 @@ module.exports = async function cucumber(file) {
             });
         }      
     `;
+}
+
+module.exports = async function cucumber(file) {
+    const { filePath, outputPath, shouldWatch } = file;
+    if (!filePath.endsWith('.feature')) {
+        return cyBrowserify(file)
+    }
+    if (shouldWatch) {
+        const watcher = chokidar.watch(filePath);
+        watcher.on('change', () => {
+            const gherkinDocument = parser.parse(readFileSync(filePath, 'utf-8'));
+            const testCases = compile(gherkinDocument, filePath, uuidFn);
+            ensureFileSync(outputPath);
+            writeFileSync(outputPath, adapter(testCases), 'utf8');
+            file.emit('rerun');
+        });
+
+        file.on('close', () => {
+            watcher.close()
+        })
+
+        return outputPath
+    }
+    const gherkinDocument = parser.parse(readFileSync(filePath, 'utf-8'));
+    const testCases = compile(gherkinDocument, filePath, uuidFn);
     ensureFileSync(outputPath);
-    writeFileSync(outputPath, adapter, 'utf8');
+    writeFileSync(outputPath, adapter(testCases), 'utf8');
 
     return outputPath
 }

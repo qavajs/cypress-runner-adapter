@@ -9,3 +9,4 @@ Feature: real test
       | searchTerm |
       | Cucumber   |
       | JavaScript |
+      | TypeScript |
