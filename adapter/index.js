@@ -46,6 +46,15 @@ function adapter(testCases) {
             }); 
             step.code.apply(world, parameters);
         }
+        if (supportCodeLibrary.beforeTestRunHookDefinitions.length > 0) {
+            describe('Before All', function () {
+                for (const beforeRun of supportCodeLibrary.beforeTestRunHookDefinitions) {
+                    it('Before All', function () {
+                        beforeRun.code.apply();
+                    });
+                }  
+            })
+        }
         for (const test of tests) {
             describe('Scenario: ' + test.name, { testIsolation: false }, function () {
                 const world = new supportCodeLibrary.World();
@@ -60,7 +69,7 @@ function adapter(testCases) {
                                     pickleStep: this.step,
                                     gherkinDocument: tests,
                                     result: this.currentTest.state
-                                }]) 
+                                }]);
                             }
                         }  
                     }
@@ -105,11 +114,20 @@ function adapter(testCases) {
                                 result,
                                 gherkinDocument: tests,
                                 willBeRetried: false
-                            }])
+                            }]);
                         });
                     }
                 }
             });
+        }
+        if (supportCodeLibrary.afterTestRunHookDefinitions.length > 0) {
+            describe('After All', function () {
+                for (const afterRun of supportCodeLibrary.afterTestRunHookDefinitions) {
+                    it('After All', function () {
+                        afterRun.code.apply();
+                    });
+                }  
+            })
         }      
     `;
 }
