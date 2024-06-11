@@ -1,12 +1,10 @@
-import {
-    CucumberExpression,
-    RegularExpression,
-} from '@cucumber/cucumber-expressions'
+import { CucumberExpression, RegularExpression } from '@cucumber/cucumber-expressions'
 import StepDefinition from './step_definition';
-import {SourcedParameterTypeRegistry} from './sourced_parameter_type_registry';
+import { SourcedParameterTypeRegistry } from './sourced_parameter_type_registry';
 import TestCaseHookDefinition from './test_case_hook_definition';
 import TestStepHookDefinition from './test_step_hook_definition';
-import {buildParameterType} from './build_parameter_type';
+import { buildParameterType } from './build_parameter_type';
+import TestRunHookDefinition from './test_run_hook_definition';
 class World {}
 
 const supportCodeLibrary = {
@@ -81,6 +79,18 @@ export function AfterStep(optionsOrCode, code) {
     supportCodeLibrary.afterTestStepHookDefinitions.push(new TestStepHookDefinition({
         code: handler,
         options
+    }));
+}
+
+export function BeforeAll(handler) {
+    supportCodeLibrary.beforeTestRunHookDefinitions.push(new TestRunHookDefinition({
+        code: handler,
+    }));
+}
+
+export function AfterAll(handler) {
+    supportCodeLibrary.afterTestRunHookDefinitions.push(new TestRunHookDefinition({
+        code: handler,
     }));
 }
 
