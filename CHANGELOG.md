@@ -5,10 +5,17 @@ All notable changes to the "@qavajs/cypress-runner-adapter" will be documented i
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 :rocket: - new feature
+
 :beetle: - bugfix
+
 :x: - deprecation/removal
+
 :pencil: - chore
+
 :microscope: - experimental
+
+## [1.0.0]
+- :rocket: added `this.executeStep` world method
 
 ## [0.2.0]
 - :rocket: added _BeforeAll_ and _AfterAll_ hooks support
