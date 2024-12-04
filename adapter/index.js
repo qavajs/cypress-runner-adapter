@@ -25,6 +25,19 @@ function adapter(testCases) {
             }
         }
         
+        function executeStepByText(text, argument) {
+            const steps = supportCodeLibrary.stepDefinitions
+                .filter(stepDefinition => stepDefinition.matchesStepName(text));
+            if (steps.length === 0) throw new Error(\`Step '\${text}' is not defined\`);
+            if (steps.length > 1) throw new Error(\`Step '\${text}' matches multiple step definitions\`);
+            const [step] = steps;
+            const { parameters } = step.getInvocationParameters({
+                step: { text, argument },
+                world: this
+            }); 
+            step.code.apply(this, parameters);
+        }
+        
         function executeStep(pickle, world) {
             if (pickle.argument && pickle.argument.dataTable) {
                 Cypress.log({ displayName: 'DataTable', message: pickle.argument.dataTable })
@@ -32,20 +45,9 @@ function adapter(testCases) {
             if (pickle.argument && pickle.argument.docString) {
                 Cypress.log({ displayName: 'Multiline', message: pickle.argument.docString.content })
             }
-            const steps = supportCodeLibrary.stepDefinitions
-                .filter(stepDefinition => stepDefinition.matchesStepName(pickle.text));
-            if (steps.length === 0) throw new Error(\`Step '\${pickle.text}' is not defined\`);
-            if (steps.length > 1) throw new Error(\`'\${pickle.text}' matches multiple step definitions\`);
-            const [step] = steps;
-            const { parameters } = step.getInvocationParameters({
-                step: {
-                    text: pickle.text,
-                    argument: pickle.argument
-                },
-                world
-            }); 
-            step.code.apply(world, parameters);
+            executeStepByText.call(world, pickle.text, pickle.argument);
         }
+        
         if (supportCodeLibrary.beforeTestRunHookDefinitions.length > 0) {
             describe('Before All', function () {
                 for (const beforeRun of supportCodeLibrary.beforeTestRunHookDefinitions) {
@@ -58,6 +60,7 @@ function adapter(testCases) {
         for (const test of tests) {
             describe('Scenario: ' + test.name, { testIsolation: false }, function () {
                 const world = new supportCodeLibrary.World();
+                world.executeStep = executeStepByText;
                 let skip = false;
                 let result = 'passed';
                 afterEach(function() {
