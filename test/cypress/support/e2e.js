@@ -57,5 +57,5 @@ When('print {color}', function (color) {
 });
 
 When('execute step', function () {
-    this.executeStep('simple');
+    this.executeStep('simple step');
 });

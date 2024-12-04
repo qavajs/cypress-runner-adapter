@@ -45,4 +45,4 @@ Feature: test feature
     When simple step
 
   Scenario: execute step
-    When simple step
+    When execute step
