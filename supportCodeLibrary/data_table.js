@@ -1,4 +1,4 @@
-export default class Data_table {
+export default class DataTable {
     constructor(sourceTable) {
         if (sourceTable instanceof Array) {
             this.rawTable = sourceTable

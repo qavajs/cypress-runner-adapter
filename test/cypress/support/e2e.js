@@ -2,11 +2,13 @@ import './hooks';
 import './parameter_types';
 import { When, Given, Then, setWorldConstructor } from '../../../index';
 
-setWorldConstructor(class {
+class World {
     constructor() {
         this.inWorld = false;
     }
-});
+}
+
+setWorldConstructor(World);
 
 When(`open {string} url`, function (url){
     cy.visit(url);

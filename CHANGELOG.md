@@ -14,6 +14,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 :microscope: - experimental
 
+## [1.0.1]
+- :pencil: updated dependencies
+
 ## [1.0.0]
 - :rocket: added `this.executeStep` world method
 
