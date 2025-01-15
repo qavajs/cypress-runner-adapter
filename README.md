@@ -28,8 +28,9 @@ module.exports = defineConfig({
 import { When, setWorldConstructor } from '@qavajs/cypress-runner-adapter';
 
 class World {
-    
+    parameter = 42;
 }
+
 setWorldConstructor(World);
 
 When('open {string} url', function (url) {
