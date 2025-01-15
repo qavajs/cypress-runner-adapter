@@ -57,3 +57,7 @@ When('print {color}', function (color) {
         consoleProps: () => color,
     });
 });
+
+When('execute step', function () {
+    this.executeStep('simple step');
+});

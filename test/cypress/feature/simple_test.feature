@@ -43,3 +43,6 @@ Feature: test feature
     When simple step
     When simple step
     When simple step
+
+  Scenario: execute step
+    When execute step
