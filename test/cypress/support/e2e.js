@@ -27,12 +27,16 @@ Then('multiline step', function (multiline) {
 });
 
 When('search {string}', function (searchTerm) {
-    cy.get('#searchInput').type(searchTerm);
-    cy.get('.suggestion-link').first().should('contain.text', searchTerm).click();
+    cy.get('.search-toggle').click();
+    cy.get('#p-search').type(searchTerm);
+    cy.get('[role="option"]').first().should('contain.text', searchTerm).click();
 });
 
 Then('title should be {string}', function (expectedTitle) {
-    cy.get('.mw-page-title-main').first().should('contain.text', expectedTitle);
+    cy.get('.mw-content-container .mw-page-title-main')
+        .first()
+        .should('be.visible')
+        .should('contain.text', expectedTitle);
 });
 
 When('log', function () {
@@ -46,6 +50,7 @@ When('fail', function (){
 When('modify value from world', function (){
     this.inWorld = true;
 });
+
 When('check value from world', function (){
     cy.wrap(this.inWorld).should('be.true');
 });
