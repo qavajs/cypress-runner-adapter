@@ -14,6 +14,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 :microscope: - experimental
 
+## [1.2.0]
+- :pencil: updated to cypress 15
+
 ## [1.1.0]
 - :pencil: updated to cypress 14
 

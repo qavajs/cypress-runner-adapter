@@ -27,8 +27,7 @@ Then('multiline step', function (multiline) {
 });
 
 When('search {string}', function (searchTerm) {
-    cy.get('.search-toggle').click();
-    cy.get('#p-search').type(searchTerm);
+    cy.get('#p-search input[type="search"]').type(searchTerm);
     cy.get('[role="option"]').first().should('contain.text', searchTerm).click();
 });
 
