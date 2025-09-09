@@ -3,7 +3,9 @@ Adapter to run cucumberjs tests via cypress test runner
 
 ## Installation
 
-`npm install @qavajs/cypress-runner-adapter`
+```
+npm install @qavajs/cypress-runner-adapter
+```
 
 ## Basic Configuration
 
