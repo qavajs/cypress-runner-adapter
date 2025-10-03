@@ -1,6 +1,6 @@
 {
   "name": "@qavajs/cypress-runner-adapter",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "main": "index.js",
   "scripts": {
     "debug": "cypress open --config-file test/cypress.config.js",
@@ -11,12 +11,12 @@
   "description": "feature file preprocessor",
   "dependencies": {
     "@cucumber/cucumber-expressions": "^18.0.1",
-    "@cucumber/gherkin": "^34.0.0",
+    "@cucumber/gherkin": "^35.1.0",
     "@cucumber/tag-expressions": "^6.2.0",
     "@cypress/webpack-preprocessor": "^7.0.1",
-    "fs-extra": "^11.3.1"
+    "fs-extra": "^11.3.2"
   },
   "devDependencies": {
-    "cypress": "^15.1.0"
+    "cypress": "^15.3.0"
   }
 }
