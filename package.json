@@ -6,9 +6,19 @@
     "debug": "cypress open --config-file test/cypress.config.js",
     "test": "cypress run --config-file test/cypress.config.js"
   },
-  "author": "Alexandr Galichenko",
   "license": "MIT",
   "description": "feature file preprocessor",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qavajs/cypress-runner-adapter.git"
+  },
+  "authors": [
+    "Alexandr Galichenko"
+  ],
+  "bugs": {
+    "url": "https://github.com/qavajs/cypress-runner-adapter/issues"
+  },
+  "homepage": "https://github.com/qavajs/cypress-runner-adaptert#readme",
   "dependencies": {
     "@cucumber/cucumber-expressions": "^18.0.1",
     "@cucumber/gherkin": "^35.1.0",
