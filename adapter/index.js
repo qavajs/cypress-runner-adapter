@@ -19,7 +19,6 @@ module.exports = async function cucumber(file) {
         return webpackPreprocessor(file);
     }
     const gherkinDocument = parser.parse(readFileSync(filePath, 'utf-8'));
-    console.log(process.env.TAGS)
     const tagExpression = tagExpressionParser(process.env.TAGS || '');
     const testCases = compile(gherkinDocument, filePath, uuidFn)
         .filter(test => tagExpression.evaluate(test.tags.map(tag => tag.name)));
