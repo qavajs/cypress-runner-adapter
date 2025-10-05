@@ -15,7 +15,7 @@ When(`open {string} url`, function (url){
 });
 
 When('simple step', function (){
-    cy.log('passed')
+    cy.log('passed');
 });
 
 Given(/data table step/, function (dataTable) {
