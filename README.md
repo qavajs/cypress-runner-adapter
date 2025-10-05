@@ -39,3 +39,9 @@ When('open {string} url', function (url) {
     cy.visit(url);
 });
 ```
+
+## Tags
+Test can be filtered using Cucumber tag expressions provided via environment variable `TAGS`
+```
+TAGS='@first and @second' npx cypress run
+```

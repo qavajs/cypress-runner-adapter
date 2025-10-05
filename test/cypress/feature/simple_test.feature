@@ -18,6 +18,7 @@ Feature: test feature
     second
     """
 
+  @tagged
   Scenario: log
     Given log
     When simple step

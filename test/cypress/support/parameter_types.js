@@ -10,4 +10,4 @@ defineParameterType({
     name: 'color',
     regexp: /(red|blue|green)/,
     transformer: color => ({ color, hex: hexes[color] })
-})
+});
