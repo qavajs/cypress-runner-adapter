@@ -3,11 +3,15 @@ const { randomUUID } = require('node:crypto');
 const { AstBuilder, compile, GherkinClassicTokenMatcher, Parser } = require('@cucumber/gherkin');
 const webpackPreprocessor = require('@cypress/webpack-preprocessor')();
 const tagExpressionParser = require('@cucumber/tag-expressions').default;
-const makeMochaTest = require('./make_mocha_tests');
+const makeMochaTestDescribe = require('./make_mocha_tests_describe');
+const makeMochaTestIt = require('./make_mocha_tests_it');
+
 const uuidFn = () => randomUUID();
 const builder = new AstBuilder(uuidFn);
 const matcher = new GherkinClassicTokenMatcher();
 const parser = new Parser(builder, matcher);
+
+const makeMochaTest = process.env.MODE === 'it' ? makeMochaTestIt : makeMochaTestDescribe;
 
 function adapter(testCases) {
     return `(${makeMochaTest.toString()})(${JSON.stringify(testCases)});`;

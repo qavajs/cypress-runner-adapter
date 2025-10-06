@@ -55,11 +55,7 @@ When('check value from world', function (){
 });
 
 When('print {color}', function (color) {
-    Cypress.log({
-        displayName: 'Color',
-        message: color,
-        consoleProps: () => color,
-    });
+    cy.log(color);
 });
 
 When('execute step', function () {

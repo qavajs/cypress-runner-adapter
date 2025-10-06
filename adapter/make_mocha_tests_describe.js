@@ -40,7 +40,7 @@ module.exports = function makeMochaTest(tests) {
             }
         })
     }
-    
+
     for (const test of tests) {
         describe('Scenario: ' + test.name, { testIsolation: false }, function () {
             const world = new supportCodeLibrary.World();

@@ -16,6 +16,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [1.3.0]
 - :rocket: added tags support
+- :rocket: added alternative 'it mode' to translate gherkin tests to mocha `it` instead of `describe`
+```bash
+MODE=it npx cypress open
+```
 
 ## [1.2.1]
 - :pencil: updated to cypress 15.3
