@@ -47,3 +47,12 @@ Feature: test feature
 
   Scenario: execute step
     When execute step
+
+  Scenario Outline: print <value>
+    When print <value>
+
+    Examples:
+      | value |
+      | blue  |
+      | red   |
+      | green |

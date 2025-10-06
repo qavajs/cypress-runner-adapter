@@ -1,5 +1,5 @@
 # @qavajs/cypress-runner-adapter
-Adapter to run cucumberjs tests via cypress test runner
+Adapter to run Gherkin tests via cypress test runner
 
 ## Installation
 
@@ -44,4 +44,13 @@ When('open {string} url', function (url) {
 Test can be filtered using Cucumber tag expressions provided via environment variable `TAGS`
 ```
 TAGS='@first and @second' npx cypress run
+```
+
+## Translation Mode
+Gherkin tests can be translated in different modes
+- `describe` - default mode. Scenario will be translated as `describe`, each step will be translated as `it`
+- `it` - Scenario will be translated as `it`
+
+```bash
+MODE=it npx cypress open
 ```
