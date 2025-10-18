@@ -1,6 +1,6 @@
 import './hooks';
 import './parameter_types';
-import { When, Given, Then, setWorldConstructor } from '../../../index';
+import { When, Given, Then, setWorldConstructor, Template } from '../../../index';
 
 class World {
     constructor() {
@@ -43,7 +43,7 @@ When('log', function () {
 });
 
 When('fail', function (){
-    throw new Error('intentional error');
+    cy.wrap(1).should('equal', 2);
 });
 
 When('modify value from world', function (){
@@ -61,3 +61,13 @@ When('print {color}', function (color) {
 When('execute step', function () {
     this.executeStep('simple step');
 });
+
+When('template step', Template(() => `
+    simple step
+    log
+`));
+
+When('search in wikipedia {string}', Template(term => `
+    open 'https://en.wikipedia.org/' url
+    search '${term}'
+`));

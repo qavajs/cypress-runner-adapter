@@ -56,3 +56,6 @@ Feature: test feature
       | blue  |
       | red   |
       | green |
+
+  Scenario: template
+    When template step

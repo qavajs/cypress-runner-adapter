@@ -29,3 +29,4 @@ export function BeforeAll(fn: Function): void;
 export function AfterAll(fn: Function): void;
 export function setWorldConstructor(world: IWorld): void;
 export function defineParameterType(option: ParameterTypeOption): void;
+export function Template(template: (...args: any[]) => string): () => void;
