@@ -46,8 +46,20 @@ module.exports = function makeMochaTest(tests) {
             const world = new supportCodeLibrary.World();
             world.executeStep = executeStepByText;
             let skip = false;
-            let result = 'passed';
+            let status = 'passed';
+            let duration = 0;
+            let exception;
+            let message;
             afterEach(function () {
+                if (this.currentTest.state !== 'passed') {
+                    skip = true;
+                }
+                duration += this.currentTest.duration;
+                if (this.currentTest.state === 'failed') {
+                    status = this.currentTest.state;
+                    exception = this.currentTest.err;
+                    message = this.currentTest.err?.message;
+                }
                 if (this.step) {
                     for (const afterStep of supportCodeLibrary.afterTestStepHookDefinitions) {
                         if (afterStep.appliesToTestCase(this.step)) {
@@ -55,15 +67,16 @@ module.exports = function makeMochaTest(tests) {
                                 pickle: test,
                                 pickleStep: this.step,
                                 gherkinDocument: tests,
-                                result: this.currentTest.state
+                                result: {
+                                    duration,
+                                    status,
+                                    exception,
+                                    message
+                                }
                             }]);
                         }
                     }
                 }
-                if (this.currentTest.state !== 'passed') {
-                    skip = true;
-                }
-                result = this.currentTest.state;
             });
             for (const beforeTest of supportCodeLibrary.beforeTestCaseHookDefinitions) {
                 if (beforeTest.appliesToTestCase(test)) {
@@ -96,9 +109,15 @@ module.exports = function makeMochaTest(tests) {
             for (const afterTest of supportCodeLibrary.afterTestCaseHookDefinitions) {
                 if (afterTest.appliesToTestCase(test)) {
                     it(afterTest.name, function () {
+                        this.step = null;
                         afterTest.code.apply(world, [{
                             pickle: test,
-                            result,
+                            result: {
+                                duration,
+                                status,
+                                exception,
+                                message
+                            },
                             gherkinDocument: tests,
                             willBeRetried: false
                         }]);

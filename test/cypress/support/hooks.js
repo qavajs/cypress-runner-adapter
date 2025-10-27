@@ -24,7 +24,7 @@ Before({ tags: '@tagged' }, function (obj) {
     cy.log(obj);
 });
 
-After(function (obj) {
+After({ name: 'Named After' },function (obj) {
     cy.log('after');
     cy.log(obj);
 });
