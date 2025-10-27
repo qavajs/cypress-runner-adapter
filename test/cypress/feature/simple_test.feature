@@ -39,7 +39,6 @@ Feature: test feature
 
   Scenario: skipped steps
     When simple step
-    #When fail
     When simple step
     When simple step
     When simple step

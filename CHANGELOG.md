@@ -15,7 +15,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 :microscope: - experimental
 
 ## [1.4.1]
-- :rocket: fixed `result` property in `After` and `AfterStep` hooks
+- :beetle: fixed `result` property in `After` and `AfterStep` hooks
+- :rocket: added workaround to complete `AfterStep` hook in case of step fail
 
 ## [1.4.0]
 - :rocket: added `Template` utility function

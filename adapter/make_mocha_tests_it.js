@@ -88,6 +88,19 @@ module.exports = function makeMochaTest(tests) {
         const test = findTest(tests, this.currentTest.title);
         const world = this.world;
         const result = getResult(this.currentTest);
+        // corner case to complete AfterStep if test is failed
+        if (result.status === 'failed' && this.step) {
+            for (const afterStep of supportCodeLibrary.afterTestStepHookDefinitions) {
+                if (afterStep.appliesToTestCase(this.step)) {
+                    afterStep.code.apply(world, [{
+                        pickle: test,
+                        pickleStep: this.step,
+                        gherkinDocument: tests,
+                        result
+                    }]);
+                }
+            }
+        }
         for (const afterTest of supportCodeLibrary.afterTestCaseHookDefinitions) {
             if (afterTest.appliesToTestCase(test)) {
                 runStep(afterTest.name, function () {
