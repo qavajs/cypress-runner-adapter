@@ -71,3 +71,7 @@ When('search in wikipedia {string}', Template(term => `
     open 'https://en.wikipedia.org/' url
     search '${term}'
 `));
+
+When('log {string}', function (value) {
+    cy.log(value);
+});
