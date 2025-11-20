@@ -14,6 +14,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 :microscope: - experimental
 
+## [1.4.2]
+- :pencil: updated to cypress 15.7.0
+- :pencil: updated to gherkin to 37.0.0
+
 ## [1.4.1]
 - :beetle: fixed `result` property in `After` and `AfterStep` hooks
 - :rocket: added workaround to complete `AfterStep` hook in case of step fail
