@@ -3,7 +3,7 @@ const cucumber = require('../adapter');
 
 module.exports = defineConfig({
     e2e: {
-        specPattern: 'test/cypress/feature/real_test.feature',
+        specPattern: 'test/cypress/feature/**/*.feature',
         supportFile: 'test/cypress/support/e2e.js',
         setupNodeEvents(on, config) {
             on('file:preprocessor', cucumber);

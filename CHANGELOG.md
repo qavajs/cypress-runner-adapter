@@ -14,6 +14,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 :microscope: - experimental
 
+## [1.5.0]
+- :rocket: added `world.log` method
+- :rocket: updated test.body to render corresponding step code
+
 ## [1.4.2]
 - :pencil: updated to cypress 15.7.0
 - :pencil: updated to gherkin to 37.0.0
