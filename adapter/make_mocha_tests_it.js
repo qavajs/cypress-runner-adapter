@@ -1,4 +1,8 @@
 module.exports = function makeMochaTest(tests) {
+    function log(data) {
+        cy.log(data);
+    }
+
     function keyword(step) {
         switch (step.type) {
             case 'Context':
@@ -60,6 +64,10 @@ module.exports = function makeMochaTest(tests) {
         return tests.find(test => test.name === testName);
     }
 
+    function renderGherkinTest(steps) {
+        return steps.map(step => `${keyword(step)} ${step.text}`).join('\n');
+    }
+
     if (supportCodeLibrary.beforeTestRunHookDefinitions.length > 0) {
         before(function () {
             for (const beforeRun of supportCodeLibrary.beforeTestRunHookDefinitions) {
@@ -70,7 +78,12 @@ module.exports = function makeMochaTest(tests) {
 
     beforeEach(function () {
         const test = findTest(tests, this.currentTest.title);
-        const world = this.world = new supportCodeLibrary.World();
+        this.currentTest.body = renderGherkinTest(test.steps);
+        const world = this.world = new supportCodeLibrary.World({
+            log,
+            attach: log,
+            link: log
+        });
         for (const beforeTest of supportCodeLibrary.beforeTestCaseHookDefinitions) {
             if (beforeTest.appliesToTestCase(test)) {
                 runStep(beforeTest.name, function () {
@@ -122,7 +135,7 @@ module.exports = function makeMochaTest(tests) {
                 const stepName = keyword(step) + ': ' + step.text;
                 runStep(stepName, function () {
                     this.step = step;
-                    const result = { status: 'passed', duration: 0 };
+                    const result = {status: 'passed', duration: 0};
                     for (const beforeStep of supportCodeLibrary.beforeTestStepHookDefinitions) {
                         if (beforeStep.appliesToTestCase(step)) {
                             beforeStep.code.apply(world, [{

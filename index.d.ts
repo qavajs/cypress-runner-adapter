@@ -30,3 +30,10 @@ export function AfterAll(fn: Function): void;
 export function setWorldConstructor(world: IWorld): void;
 export function defineParameterType(option: ParameterTypeOption): void;
 export function Template(template: (...args: any[]) => string): () => void;
+export class World {
+    constructor(options: {
+        log: (...args: any) => void;
+        attach: (...args: any) => void;
+        link: (...args: any) => void;
+    });
+}
