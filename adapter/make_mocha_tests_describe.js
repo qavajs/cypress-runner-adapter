@@ -12,12 +12,17 @@ module.exports = function makeMochaTest(tests) {
         }
     }
 
-    function executeStepByText(text, argument) {
+    function findStepDefinition(text) {
         const steps = supportCodeLibrary.stepDefinitions
             .filter(stepDefinition => stepDefinition.matchesStepName(text));
         if (steps.length === 0) throw new Error(`Step '${text}' is not defined`);
         if (steps.length > 1) throw new Error(`Step '${text}' matches multiple step definitions`);
         const [step] = steps;
+        return step;
+    }
+
+    function executeStepByText(text, argument) {
+        const step = findStepDefinition(text);
         const { parameters } = step.getInvocationParameters({
             step: { text, argument },
             world: this
@@ -39,6 +44,7 @@ module.exports = function makeMochaTest(tests) {
         describe('Before All', function () {
             for (const beforeRun of supportCodeLibrary.beforeTestRunHookDefinitions) {
                 it('Before All', function () {
+                    this.test.body = beforeRun.code.toString();
                     beforeRun.code.apply();
                 });
             }
@@ -89,6 +95,7 @@ module.exports = function makeMochaTest(tests) {
             for (const beforeTest of supportCodeLibrary.beforeTestCaseHookDefinitions) {
                 if (beforeTest.appliesToTestCase(test)) {
                     it(beforeTest.name, function () {
+                        this.test.body = beforeTest.code.toString();
                         world.test = this;
                         if (skip) return this.skip();
                         beforeTest.code.apply(world, [{
@@ -101,6 +108,7 @@ module.exports = function makeMochaTest(tests) {
             }
             for (const step of test.steps) {
                 it(keyword(step) + ': ' + step.text, function () {
+                    this.test.body = findStepDefinition(step.text).code.toString();
                     this.step = step;
                     if (skip) return this.skip();
                     for (const beforeStep of supportCodeLibrary.beforeTestStepHookDefinitions) {
@@ -118,6 +126,7 @@ module.exports = function makeMochaTest(tests) {
             for (const afterTest of supportCodeLibrary.afterTestCaseHookDefinitions) {
                 if (afterTest.appliesToTestCase(test)) {
                     it(afterTest.name, function () {
+                        this.test.body = afterTest.code.toString();
                         this.step = null;
                         afterTest.code.apply(world, [{
                             pickle: test,
@@ -139,6 +148,7 @@ module.exports = function makeMochaTest(tests) {
         describe('After All', function () {
             for (const afterRun of supportCodeLibrary.afterTestRunHookDefinitions) {
                 it('After All', function () {
+                    this.test.body = afterRun.code.toString();
                     afterRun.code.apply();
                 });
             }

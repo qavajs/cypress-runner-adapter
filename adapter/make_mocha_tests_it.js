@@ -64,6 +64,10 @@ module.exports = function makeMochaTest(tests) {
         return tests.find(test => test.name === testName);
     }
 
+    function renderGherkinTest(steps) {
+        return steps.map(step => `${keyword(step)} ${step.text}`).join('\n');
+    }
+
     if (supportCodeLibrary.beforeTestRunHookDefinitions.length > 0) {
         before(function () {
             for (const beforeRun of supportCodeLibrary.beforeTestRunHookDefinitions) {
@@ -74,6 +78,7 @@ module.exports = function makeMochaTest(tests) {
 
     beforeEach(function () {
         const test = findTest(tests, this.currentTest.title);
+        this.currentTest.body = renderGherkinTest(test.steps);
         const world = this.world = new supportCodeLibrary.World({
             log,
             attach: log,
