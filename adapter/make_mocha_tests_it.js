@@ -1,4 +1,8 @@
 module.exports = function makeMochaTest(tests) {
+    function log(data) {
+        cy.log(data);
+    }
+
     function keyword(step) {
         switch (step.type) {
             case 'Context':
@@ -70,7 +74,11 @@ module.exports = function makeMochaTest(tests) {
 
     beforeEach(function () {
         const test = findTest(tests, this.currentTest.title);
-        const world = this.world = new supportCodeLibrary.World();
+        const world = this.world = new supportCodeLibrary.World({
+            log,
+            attach: log,
+            link: log
+        });
         for (const beforeTest of supportCodeLibrary.beforeTestCaseHookDefinitions) {
             if (beforeTest.appliesToTestCase(test)) {
                 runStep(beforeTest.name, function () {
@@ -122,7 +130,7 @@ module.exports = function makeMochaTest(tests) {
                 const stepName = keyword(step) + ': ' + step.text;
                 runStep(stepName, function () {
                     this.step = step;
-                    const result = { status: 'passed', duration: 0 };
+                    const result = {status: 'passed', duration: 0};
                     for (const beforeStep of supportCodeLibrary.beforeTestStepHookDefinitions) {
                         if (beforeStep.appliesToTestCase(step)) {
                             beforeStep.code.apply(world, [{

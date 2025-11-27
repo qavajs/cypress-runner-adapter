@@ -1,14 +1,15 @@
 import './hooks';
 import './parameter_types';
-import { When, Given, Then, setWorldConstructor, Template } from '../../../index';
+import { When, Given, Then, setWorldConstructor, Template, World } from '../../../index';
 
-class World {
-    constructor() {
+class CustomWorld extends World {
+    constructor(options) {
+        super(options);
         this.inWorld = false;
     }
 }
 
-setWorldConstructor(World);
+setWorldConstructor(CustomWorld);
 
 When(`open {string} url`, function (url){
     cy.visit(url);
@@ -74,4 +75,8 @@ When('search in wikipedia {string}', Template(term => `
 
 When('log {string}', function (value) {
     cy.log(value);
+});
+
+When('world log {string}', function (value) {
+    this.log(value);
 });

@@ -5,7 +5,14 @@ import TestCaseHookDefinition from './test_case_hook_definition';
 import TestStepHookDefinition from './test_step_hook_definition';
 import { buildParameterType } from './build_parameter_type';
 import TestRunHookDefinition from './test_run_hook_definition';
-class World {}
+
+export class World {
+    constructor(options) {
+        this.log = options.log;
+        this.attach = options.attach;
+        this.link = options.link;
+    }
+}
 
 const supportCodeLibrary = {
     stepDefinitions: [],

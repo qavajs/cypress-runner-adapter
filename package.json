@@ -1,6 +1,6 @@
 {
   "name": "@qavajs/cypress-runner-adapter",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "main": "index.js",
   "scripts": {
     "debug": "cypress open --config-file test/cypress.config.js",
@@ -24,12 +24,13 @@
   "dependencies": {
     "@cucumber/cucumber-expressions": "^18.0.1",
     "@cucumber/gherkin": "^37.0.0",
-    "@cucumber/tag-expressions": "^8.0.0",
+    "@cucumber/tag-expressions": "^8.1.0",
     "@cypress/webpack-preprocessor": "^7.0.2",
     "fs-extra": "^11.3.2"
   },
   "devDependencies": {
-    "cypress": "^15.7.0"
+    "cypress": "^15.7.0",
+    "mochawesome": "^7.1.4"
   },
   "keywords": [
     "cypress",

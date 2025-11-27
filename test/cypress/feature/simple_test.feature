@@ -58,3 +58,6 @@ Feature: test feature
 
   Scenario: template
     When template step
+
+  Scenario: world log
+    When world log '42'
