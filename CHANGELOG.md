@@ -14,6 +14,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 :microscope: - experimental
 
+
+## [Unreleased]
+- :rocket: updated logs for Gherkin steps
+
 ## [1.5.0]
 - :rocket: added `world.log` method
 - :rocket: updated test.body to render corresponding step code

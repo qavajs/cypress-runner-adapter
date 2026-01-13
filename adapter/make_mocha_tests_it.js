@@ -132,7 +132,7 @@ module.exports = function makeMochaTest(tests) {
         it('Scenario: ' + test.name, function () {
             const world = this.world;
             for (const step of test.steps) {
-                const stepName = keyword(step) + ': ' + step.text;
+                const stepName = `${keyword(step)} ${step.text}`;
                 runStep(stepName, function () {
                     this.step = step;
                     const result = {status: 'passed', duration: 0};
