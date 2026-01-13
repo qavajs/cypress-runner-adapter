@@ -107,7 +107,7 @@ module.exports = function makeMochaTest(tests) {
                 }
             }
             for (const step of test.steps) {
-                it(keyword(step) + ': ' + step.text, function () {
+                it(`${keyword(step)} ${step.text}`, function () {
                     this.test.body = findStepDefinition(step.text).code.toString();
                     this.step = step;
                     if (skip) return this.skip();
