@@ -1,6 +1,6 @@
 {
   "name": "@qavajs/cypress-runner-adapter",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "main": "index.js",
   "scripts": {
     "debug": "cypress open --config-file test/cypress.config.js",
@@ -29,7 +29,7 @@
     "fs-extra": "^11.3.3"
   },
   "devDependencies": {
-    "cypress": "^15.8.2",
+    "cypress": "^15.9.0",
     "mochawesome": "^7.1.4"
   },
   "keywords": [

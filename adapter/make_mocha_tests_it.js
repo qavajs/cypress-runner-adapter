@@ -16,6 +16,14 @@ module.exports = function makeMochaTest(tests) {
         }
     }
 
+    function stepNameText(pickleStep) {
+        let step = pickleStep.text;
+        if (pickleStep.argument) {
+            step += pickleStep.argument.docString ? ' [MultiLine]' : ' [DataTable]';
+        }
+        return step;
+    }
+
     function getResult(currentTest) {
         return {
             duration: currentTest.duration,
@@ -132,7 +140,7 @@ module.exports = function makeMochaTest(tests) {
         it('Scenario: ' + test.name, function () {
             const world = this.world;
             for (const step of test.steps) {
-                const stepName = `${keyword(step)} ${step.text}`;
+                const stepName = `${keyword(step)} ${stepNameText(step)}`;
                 runStep(stepName, function () {
                     this.step = step;
                     const result = {status: 'passed', duration: 0};

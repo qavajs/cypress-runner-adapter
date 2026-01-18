@@ -15,8 +15,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 :microscope: - experimental
 
 
-## [Unreleased]
+## [1.6.0]
 - :rocket: updated logs for Gherkin steps
+- :rocket: improved multi line and data table step logging
 
 ## [1.5.0]
 - :rocket: added `world.log` method

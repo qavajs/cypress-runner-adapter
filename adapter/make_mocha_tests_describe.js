@@ -12,6 +12,14 @@ module.exports = function makeMochaTest(tests) {
         }
     }
 
+    function stepName(pickleStep) {
+        let step = pickleStep.text;
+        if (pickleStep.argument) {
+            step += pickleStep.argument.docString ? ' [MultiLine]' : ' [DataTable]';
+        }
+        return step;
+    }
+
     function findStepDefinition(text) {
         const steps = supportCodeLibrary.stepDefinitions
             .filter(stepDefinition => stepDefinition.matchesStepName(text));
@@ -107,7 +115,7 @@ module.exports = function makeMochaTest(tests) {
                 }
             }
             for (const step of test.steps) {
-                it(`${keyword(step)} ${step.text}`, function () {
+                it(`${keyword(step)} ${stepName(step)}`, function () {
                     this.test.body = findStepDefinition(step.text).code.toString();
                     this.step = step;
                     if (skip) return this.skip();
