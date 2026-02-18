@@ -14,6 +14,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 :microscope: - experimental
 
+## [1.7.0]
+- :rocket: updated @cucumber/cucumber-expressions, @cucumber/gherkin, @cucumber/tag-expressions
 
 ## [1.6.0]
 - :rocket: updated logs for Gherkin steps
