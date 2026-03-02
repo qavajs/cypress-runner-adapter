@@ -14,6 +14,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 :microscope: - experimental
 
+## [1.8.0]
+- :rocket: added `testCaseStartedId` and `testStepId` as hooks parameters to comply cucumber spec
+
 ## [1.7.0]
 - :rocket: updated @cucumber/cucumber-expressions, @cucumber/gherkin, @cucumber/tag-expressions
 

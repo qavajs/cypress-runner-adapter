@@ -4,31 +4,53 @@ BeforeAll(function () {
     cy.log('before all hook');
 });
 
-BeforeStep(function (obj) {
+BeforeStep(function (params) {
     cy.log('before step');
-    cy.log(obj);
 });
 
-AfterStep(function (obj) {
+AfterStep(function (params) {
     cy.log('after step');
-    cy.log(obj);
 });
 
-Before(function (obj) {
+Before(function (params) {
     cy.log('before');
-    cy.log(obj);
 });
 
-Before({ tags: '@tagged' }, function (obj) {
+Before({ tags: '@tagged' }, function (params) {
     cy.log('before tagged');
-    cy.log(obj);
+    cy.wrap(params).should((params) => {
+        expect(params).to.have.property('gherkinDocument');
+        expect(params).to.have.property('pickle');
+        expect(params.error).to.be.undefined;
+        expect(params.willBeRetried).to.equal(false);
+        expect(params).to.have.property('testCaseStartedId');
+    });
 });
 
-After(function (obj) {
+After({ tags: '@tagged' }, function (params) {
+    cy.log('after tagged');
+    cy.wrap(params).should((params) => {
+        expect(params).to.have.property('gherkinDocument');
+        expect(params).to.have.property('pickle');
+        expect(params).to.have.property('result');
+        expect(params.error).to.be.undefined;
+        expect(params.willBeRetried).to.equal(false);
+        expect(params).to.have.property('testCaseStartedId');
+    });
+});
+
+After(function (params) {
     cy.log('after');
-    cy.log(obj);
 });
 
 AfterAll(function () {
     cy.log('after all hook');
+});
+
+Before({ name: 'named before' }, function () {
+    cy.log('named before hook');
+});
+
+After({ name: 'named after' }, function () {
+    cy.log('named after hook');
 });
