@@ -39,8 +39,8 @@ module.exports = function makeMochaTest(tests) {
         if (steps.length === 0) throw new Error(`Step '${text}' is not defined`);
         if (steps.length > 1) throw new Error(`Step '${text}' matches multiple step definitions`);
         const [step] = steps;
-        const {parameters} = step.getInvocationParameters({
-            step: {text, argument},
+        const { parameters } = step.getInvocationParameters({
+            step: { text, argument },
             world: this
         });
         step.code.apply(this, parameters);
@@ -49,10 +49,10 @@ module.exports = function makeMochaTest(tests) {
     function executeStep(pickle, world) {
         cy.then(() => {
             if (pickle.argument && pickle.argument.dataTable) {
-                Cypress.log({displayName: 'DataTable', message: pickle.argument.dataTable});
+                Cypress.log({ displayName: 'DataTable', message: pickle.argument.dataTable });
             }
             if (pickle.argument && pickle.argument.docString) {
-                Cypress.log({displayName: 'Multiline', message: pickle.argument.docString.content});
+                Cypress.log({ displayName: 'Multiline', message: pickle.argument.docString.content });
             }
         });
         executeStepByText.call(world, pickle.text, pickle.argument);
@@ -62,7 +62,7 @@ module.exports = function makeMochaTest(tests) {
 
     function runStep(name, callback) {
         cy.then(() => {
-            Cypress.log({displayName: name, message: ''});
+            Cypress.log({ displayName: name, message: '' });
         })
         callback();
     }
@@ -98,7 +98,8 @@ module.exports = function makeMochaTest(tests) {
                     beforeTest.code.apply(world, [{
                         pickle: test,
                         gherkinDocument: tests,
-                        willBeRetried: false
+                        willBeRetried: false,
+                        testCaseStartedId: test.id
                     }]);
                 });
             }
@@ -117,6 +118,8 @@ module.exports = function makeMochaTest(tests) {
                         pickle: test,
                         pickleStep: this.step,
                         gherkinDocument: tests,
+                        testCaseStartedId: test.id,
+                        testStepId: this.step.id,
                         result
                     }]);
                 }
@@ -129,6 +132,7 @@ module.exports = function makeMochaTest(tests) {
                         pickle: test,
                         result,
                         gherkinDocument: tests,
+                        testCaseStartedId: test.id,
                         willBeRetried: false
                     }]);
                 });
@@ -143,13 +147,16 @@ module.exports = function makeMochaTest(tests) {
                 const stepName = `${keyword(step)} ${stepNameText(step)}`;
                 runStep(stepName, function () {
                     this.step = step;
-                    const result = {status: 'passed', duration: 0};
+                    const result = { status: 'passed', duration: 0 };
                     for (const beforeStep of supportCodeLibrary.beforeTestStepHookDefinitions) {
                         if (beforeStep.appliesToTestCase(step)) {
                             beforeStep.code.apply(world, [{
                                 pickle: test,
                                 pickleStep: step,
-                                gherkinDocument: tests
+                                gherkinDocument: tests,
+                                willBeRetried: false,
+                                testCaseStartedId: test.id,
+                                testStepId: step.id
                             }]);
                         }
                     }
@@ -160,7 +167,10 @@ module.exports = function makeMochaTest(tests) {
                                 pickle: test,
                                 pickleStep: this.step,
                                 gherkinDocument: tests,
-                                result
+                                result,
+                                willBeRetried: false,
+                                testCaseStartedId: test.id,
+                                testStepId: step.id
                             }]);
                         }
                     }

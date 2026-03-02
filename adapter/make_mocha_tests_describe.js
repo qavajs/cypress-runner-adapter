@@ -94,7 +94,9 @@ module.exports = function makeMochaTest(tests) {
                                     status,
                                     exception,
                                     message
-                                }
+                                },
+                                testCaseStartedId: test.id,
+                                testStepId: this.step.id,
                             }]);
                         }
                     }
@@ -109,7 +111,8 @@ module.exports = function makeMochaTest(tests) {
                         beforeTest.code.apply(world, [{
                             pickle: test,
                             gherkinDocument: tests,
-                            willBeRetried: false
+                            willBeRetried: false,
+                            testCaseStartedId: test.id
                         }]);
                     });
                 }
@@ -124,7 +127,9 @@ module.exports = function makeMochaTest(tests) {
                             beforeStep.code.apply(world, [{
                                 pickle: test,
                                 pickleStep: step,
-                                gherkinDocument: tests
+                                gherkinDocument: tests,
+                                testCaseStartedId: test.id,
+                                testStepId: this.step.id,
                             }]);
                         }
                     }
@@ -145,7 +150,8 @@ module.exports = function makeMochaTest(tests) {
                                 message
                             },
                             gherkinDocument: tests,
-                            willBeRetried: false
+                            willBeRetried: false,
+                            testCaseStartedId: test.id,
                         }]);
                     });
                 }
