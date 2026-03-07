@@ -60,11 +60,22 @@ module.exports = function makeMochaTest(tests) {
 
     supportCodeLibrary.World.prototype.executeStep = executeStepByText;
 
-    function runStep(name, callback) {
+    function runStep({ keyword, name }, callback) {
+        const displayName = keyword ? keyword : name;
+        const message = keyword && name ? name : '';
+        let group;
         cy.then(() => {
-            Cypress.log({ displayName: name, message: '' });
-        })
+            group = Cypress.log({
+                name,
+                displayName,
+                message,
+                groupStart: true,
+            });
+        });
         callback();
+        cy.then(() => {
+            group.endGroup();
+        });
     }
 
     function findTest(tests, name) {
@@ -94,7 +105,7 @@ module.exports = function makeMochaTest(tests) {
         });
         for (const beforeTest of supportCodeLibrary.beforeTestCaseHookDefinitions) {
             if (beforeTest.appliesToTestCase(test)) {
-                runStep(beforeTest.name, function () {
+                runStep({ name: beforeTest.name }, function () {
                     beforeTest.code.apply(world, [{
                         pickle: test,
                         gherkinDocument: tests,
@@ -127,7 +138,7 @@ module.exports = function makeMochaTest(tests) {
         }
         for (const afterTest of supportCodeLibrary.afterTestCaseHookDefinitions) {
             if (afterTest.appliesToTestCase(test)) {
-                runStep(afterTest.name, function () {
+                runStep({ name: afterTest.name }, function () {
                     afterTest.code.apply(world, [{
                         pickle: test,
                         result,
@@ -144,8 +155,7 @@ module.exports = function makeMochaTest(tests) {
         it('Scenario: ' + test.name, function () {
             const world = this.world;
             for (const step of test.steps) {
-                const stepName = `${keyword(step)} ${stepNameText(step)}`;
-                runStep(stepName, function () {
+                runStep({ keyword: keyword(step), name: stepNameText(step) }, function () {
                     this.step = step;
                     const result = { status: 'passed', duration: 0 };
                     for (const beforeStep of supportCodeLibrary.beforeTestStepHookDefinitions) {
