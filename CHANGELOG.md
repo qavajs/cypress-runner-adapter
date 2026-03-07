@@ -14,6 +14,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 :microscope: - experimental
 
+## [1.9.0]
+- :rocket: added step log groups for `it` mode
+
 ## [1.8.0]
 - :rocket: added `testCaseStartedId` and `testStepId` as hooks parameters to comply cucumber spec
 
