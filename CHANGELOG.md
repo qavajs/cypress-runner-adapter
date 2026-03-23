@@ -14,6 +14,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 :microscope: - experimental
 
+## [1.9.1]
+- :beetle: fixed step context binding in `it` mode to correctly persist current step for hook execution
+- :pencil: replaced `fs-extra` usage in adapter preprocessor with Node.js built-in `fs`/`path`
+- :pencil: restricted published package contents with `files` list in `package.json`
+- :pencil: improved typings for adapter return type and `World.executeStep`
+
 ## [1.9.0]
 - :rocket: added step log groups for `it` mode
 

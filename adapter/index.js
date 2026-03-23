@@ -1,4 +1,5 @@
-const { ensureFileSync, writeFileSync, readFileSync } = require('fs-extra');
+const { mkdirSync, writeFileSync, readFileSync } = require('node:fs');
+const { dirname } = require('node:path');
 const { randomUUID } = require('node:crypto');
 const { AstBuilder, compile, GherkinClassicTokenMatcher, Parser } = require('@cucumber/gherkin');
 const webpackPreprocessor = require('@cypress/webpack-preprocessor')();
@@ -26,7 +27,7 @@ module.exports = async function cucumber(file) {
     const tagExpression = tagExpressionParser(process.env.TAGS || '');
     const testCases = compile(gherkinDocument, filePath, uuidFn)
         .filter(test => tagExpression.evaluate(test.tags.map(tag => tag.name)));
-    ensureFileSync(outputPath);
+    mkdirSync(dirname(outputPath), { recursive: true });
     writeFileSync(outputPath, adapter(testCases), 'utf-8');
     return outputPath;
 }
