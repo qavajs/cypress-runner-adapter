@@ -155,7 +155,7 @@ module.exports = function makeMochaTest(tests) {
         it('Scenario: ' + test.name, function () {
             const world = this.world;
             for (const step of test.steps) {
-                runStep({ keyword: keyword(step), name: stepNameText(step) }, function () {
+                runStep({ keyword: keyword(step), name: stepNameText(step) }, () => {
                     this.step = step;
                     const result = { status: 'passed', duration: 0 };
                     for (const beforeStep of supportCodeLibrary.beforeTestStepHookDefinitions) {

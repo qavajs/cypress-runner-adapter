@@ -35,5 +35,6 @@ export class World {
         log: (...args: any) => void;
         attach: (...args: any) => void;
         link: (...args: any) => void;
+        executeStep: (...args: any) => Promise<any>;
     });
 }

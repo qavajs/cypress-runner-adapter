@@ -47,6 +47,6 @@ export default class DataTable {
         const transposed = this.rawTable[0].map((x, i) =>
             this.rawTable.map((y) => y[i])
         )
-        return new Data_table(transposed)
+        return new DataTable(transposed)
     }
 }
