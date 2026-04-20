@@ -118,7 +118,7 @@ defineParameterType({
 
 ## World
 
-The `World` class is instantiated for each scenario and is available as `this` inside step definitions and hooks. It provides:
+The `World` class is instantiated for each scenario and is available as `this` inside step definitions and hooks. Extend it to share state across steps within a scenario.
 
 | Property / Method | Description |
 |---|---|
@@ -128,8 +128,23 @@ The `World` class is instantiated for each scenario and is available as `this` i
 | `this.executeStep(text)` | Programmatically execute a step by its text |
 
 ```javascript
-When('I log a message', function () {
-    this.log('Hello from World');
+import { When, World, setWorldConstructor } from '@qavajs/cypress-runner-adapter';
+
+class AppWorld extends World {
+    constructor(options) {
+        super(options);
+        this.userId = null;
+    }
+}
+
+setWorldConstructor(AppWorld);
+
+When('I store user {string}', function (id) {
+    this.userId = id;
+});
+
+When('I use stored user', function () {
+    cy.log(this.userId);
 });
 
 When('I execute another step', function () {

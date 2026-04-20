@@ -21,8 +21,6 @@ export default class StepDefinition extends Definition {
             parameters.push(argumentParameter)
         }
         return {
-            getInvalidCodeLengthMessage: () =>
-                this.baseGetInvalidCodeLengthMessage(parameters),
             parameters,
             validCodeLengths: [parameters.length, parameters.length + 1],
         }

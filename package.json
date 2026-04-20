@@ -1,13 +1,15 @@
 {
   "name": "@qavajs/cypress-runner-adapter",
-  "version": "1.9.1",
-  "main": "index.js",
+  "version": "1.9.2",
+  "main": "supportCodeLibrary/index.js",
+  "exports": {
+    ".": "./supportCodeLibrary/index.js",
+    "./adapter": "./adapter/index.js"
+  },
   "files": [
     "adapter",
     "supportCodeLibrary",
-    "index.js",
     "index.d.ts",
-    "adapter.js",
     "adapter.d.ts"
   ],
   "scripts": {
@@ -33,11 +35,10 @@
     "@cucumber/cucumber-expressions": "^19.0.0",
     "@cucumber/gherkin": "^39.0.0",
     "@cucumber/tag-expressions": "^9.1.0",
-    "@cypress/webpack-preprocessor": "^7.0.2"
+    "@cypress/webpack-preprocessor": "^7.1.0"
   },
   "devDependencies": {
-    "cypress": "^15.13.0",
-    "mochawesome": "^7.1.4"
+    "cypress": "^15.13.0"
   },
   "keywords": [
     "cypress",

@@ -13,7 +13,6 @@ declare type ParameterTypeOption = {
     transformer?: Function,
     useForSnippets?: boolean
 }
-declare interface IWorld {}
 export function Given(expression: Expression, fn: Function): void;
 export function When(expression: Expression, fn: Function): void;
 export function Then(expression: Expression, fn: Function): void;
@@ -31,10 +30,13 @@ export function setWorldConstructor(world: IWorld): void;
 export function defineParameterType(option: ParameterTypeOption): void;
 export function Template(template: (...args: any[]) => string): () => void;
 export class World {
+    log: (...args: any) => void;
+    attach: (...args: any) => void;
+    link: (...args: any) => void;
+    executeStep(text: string, argument?: any): void;
     constructor(options: {
         log: (...args: any) => void;
         attach: (...args: any) => void;
         link: (...args: any) => void;
-        executeStep: (...args: any) => Promise<any>;
     });
 }
