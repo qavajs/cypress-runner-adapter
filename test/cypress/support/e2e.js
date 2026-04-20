@@ -1,6 +1,6 @@
 import './hooks';
 import './parameter_types';
-import { When, Given, Then, setWorldConstructor, Template, World } from '../../../index';
+import { When, Given, Then, setWorldConstructor, Template, World } from '../../../supportCodeLibrary/index';
 
 class CustomWorld extends World {
     constructor(options) {

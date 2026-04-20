@@ -19,7 +19,7 @@ function adapter(testCases) {
 }
 
 module.exports = async function cucumber(file) {
-    const { filePath, outputPath, shouldWatch } = file;
+    const { filePath, outputPath } = file;
     if (!filePath.endsWith('.feature')) {
         return webpackPreprocessor(file);
     }

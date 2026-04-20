@@ -9,7 +9,6 @@ module.exports = defineConfig({
             on('file:preprocessor', cucumber);
         },
         viewportWidth: 1920,
-        viewportHeight: 1080,
-        reporter: 'mochawesome',
+        viewportHeight: 1080
     },
 });

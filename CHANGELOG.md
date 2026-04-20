@@ -14,6 +14,13 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 :microscope: - experimental
 
+## [1.9.2]
+- :beetle: fixed `TestCaseHookDefinition.name` defaulting to `undefined` when no name option is provided
+- :pencil: removed dead `getInvocationParameters` methods from hook definitions (referenced non-existent base methods and were never called)
+- :pencil: removed unused `lookupSource` from `SourcedParameterTypeRegistry`
+- :pencil: removed redundant `index.js`/`adapter.js` one-liner wrappers; added `exports` map in `package.json`
+- :pencil: fixed `World` type declaration: `executeStep` is an instance method, not a constructor option; removed unused `IWorld` type
+
 ## [1.9.1]
 - :beetle: fixed step context binding in `it` mode to correctly persist current step for hook execution
 - :pencil: replaced `fs-extra` usage in adapter preprocessor with Node.js built-in `fs`/`path`

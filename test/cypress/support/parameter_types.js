@@ -1,4 +1,4 @@
-import { defineParameterType } from '../../../index';
+import { defineParameterType } from '../../../supportCodeLibrary/index';
 
 const hexes = {
     red: '#FF0000',

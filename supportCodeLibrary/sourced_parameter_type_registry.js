@@ -13,8 +13,4 @@ export class SourcedParameterTypeRegistry extends ParameterTypeRegistry {
         this.defineParameterType(parameterType)
         this.parameterTypeToSource.set(parameterType, source)
     }
-
-    lookupSource(parameterType) {
-        return this.parameterTypeToSource.get(parameterType)
-    }
 }
