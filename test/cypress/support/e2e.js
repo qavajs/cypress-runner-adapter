@@ -80,3 +80,41 @@ When('log {string}', function (value) {
 When('world log {string}', function (value) {
     this.log(value);
 });
+
+Given('data table hashes step', function (dataTable) {
+    const hashes = dataTable.hashes();
+    cy.wrap(hashes).should('deep.equal', [
+        { name: 'first', value: 'one' },
+        { name: 'second', value: 'two' }
+    ]);
+});
+
+Given('data table rows hash step', function (dataTable) {
+    const hash = dataTable.rowsHash();
+    cy.wrap(hash).should('deep.equal', { first: 'one', second: 'two' });
+});
+
+Given('data table rows step', function (dataTable) {
+    const rows = dataTable.rows();
+    cy.wrap(rows).should('deep.equal', [
+        ['value1', 'value2'],
+        ['value3', 'value4']
+    ]);
+});
+
+Given('data table transpose step', function (dataTable) {
+    const transposed = dataTable.transpose();
+    cy.wrap(transposed.raw()).should('deep.equal', [
+        ['a', '1'],
+        ['b', '2'],
+        ['c', '3']
+    ]);
+});
+
+When('attach value', function () {
+    this.attach('attachment content');
+});
+
+When('link value', function () {
+    this.link('https://example.com');
+});
