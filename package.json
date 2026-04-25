@@ -38,7 +38,7 @@
     "@cypress/webpack-preprocessor": "^7.1.0"
   },
   "devDependencies": {
-    "cypress": "^15.13.0"
+    "cypress": "^15.14.1"
   },
   "keywords": [
     "cypress",
