@@ -13,6 +13,7 @@ declare type ParameterTypeOption = {
     transformer?: Function,
     useForSnippets?: boolean
 }
+export function defineStep(keyword: string, expression: Expression, fn: Function): void;
 export function Given(expression: Expression, fn: Function): void;
 export function When(expression: Expression, fn: Function): void;
 export function Then(expression: Expression, fn: Function): void;
@@ -28,6 +29,7 @@ export function BeforeAll(fn: Function): void;
 export function AfterAll(fn: Function): void;
 export function setWorldConstructor(world: IWorld): void;
 export function defineParameterType(option: ParameterTypeOption): void;
+export function setDefaultTimeout(milliseconds: number): void;
 export function Template(template: (...args: any[]) => string): () => void;
 export class World {
     log: (...args: any) => void;

@@ -1,6 +1,6 @@
 {
   "name": "@qavajs/cypress-runner-adapter",
-  "version": "1.9.2",
+  "version": "1.10.0",
   "main": "supportCodeLibrary/index.js",
   "exports": {
     ".": "./supportCodeLibrary/index.js",
@@ -33,12 +33,12 @@
   "homepage": "https://qavajs.github.io/docs/intro",
   "dependencies": {
     "@cucumber/cucumber-expressions": "^19.0.0",
-    "@cucumber/gherkin": "^39.0.0",
+    "@cucumber/gherkin": "^39.1.0",
     "@cucumber/tag-expressions": "^9.1.0",
     "@cypress/webpack-preprocessor": "^7.1.0"
   },
   "devDependencies": {
-    "cypress": "^15.14.1"
+    "cypress": "^15.14.2"
   },
   "keywords": [
     "cypress",

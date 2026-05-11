@@ -92,3 +92,6 @@ Feature: test feature
   Scenario: attach and link
     When attach value
     When link value
+
+  Scenario: attach with mime type
+    When attach value with mime type

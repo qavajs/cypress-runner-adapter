@@ -115,6 +115,10 @@ When('attach value', function () {
     this.attach('attachment content');
 });
 
+When('attach value with mime type', function () {
+    this.attach('{"key":"value"}', 'application/json');
+});
+
 When('link value', function () {
     this.link('https://example.com');
 });
