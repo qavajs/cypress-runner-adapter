@@ -108,6 +108,10 @@ export function defineParameterType(options) {
     supportCodeLibrary.parameterTypeRegistry.defineSourcedParameterType(parameterType, {})
 }
 
+export function setDefaultTimeout(milliseconds) {
+    Cypress.config('defaultCommandTimeout', milliseconds);
+}
+
 /**
  * Define template step
  * @param {() => string} scenario - multiline string with steps

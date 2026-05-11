@@ -3,6 +3,21 @@ module.exports = function makeMochaTest(tests) {
         cy.log(data);
     }
 
+    function attach(data, options) {
+        const type = typeof options === 'string' ? options : options?.mediaType ? options.mediaType : 'text/plain';
+        const name = options?.name ?? 'attachment';
+        const src = typeof data === 'string' && data.startsWith('data:')
+            ? data
+            : `data:${type};base64,${btoa(unescape(encodeURIComponent(String(data))))}`;
+        cy.then(() => {
+            Cypress.log({
+                displayName: name,
+                message: type,
+                consoleProps: () => ({ name, src })
+            });
+        });
+    }
+
     function keyword(step) {
         switch (step.type) {
             case 'Context':
@@ -100,7 +115,7 @@ module.exports = function makeMochaTest(tests) {
         this.currentTest.body = renderGherkinTest(test.steps);
         const world = this.world = new supportCodeLibrary.World({
             log,
-            attach: log,
+            attach,
             link: log
         });
         for (const beforeTest of supportCodeLibrary.beforeTestCaseHookDefinitions) {
@@ -121,6 +136,7 @@ module.exports = function makeMochaTest(tests) {
         const test = findTest(tests, this.currentTest.title);
         const world = this.world;
         const result = getResult(this.currentTest);
+        const willBeRetried = result.status === 'failed' && this.currentTest.currentRetry() < this.currentTest._retries;
         // corner case to complete AfterStep if test is failed
         if (result.status === 'failed' && this.step) {
             for (const afterStep of supportCodeLibrary.afterTestStepHookDefinitions) {
@@ -144,7 +160,7 @@ module.exports = function makeMochaTest(tests) {
                         result,
                         gherkinDocument: tests,
                         testCaseStartedId: test.id,
-                        willBeRetried: false
+                        willBeRetried
                     }]);
                 });
             }

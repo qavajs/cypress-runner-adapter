@@ -14,6 +14,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 :microscope: - experimental
 
+## [1.10.0]
+- :rocket: added `defineStep` to type declarations
+- :rocket: added `setDefaultTimeout` export to set `defaultCommandTimeout` via Cucumber-compatible API
+- :rocket: `willBeRetried` in `After` hook now reflects actual Cypress retry state (`it` mode) or last failed step retry state (`describe` mode)
+- :rocket: `attach(data, mimeType)` now accepts an optional MIME type; image attachments are rendered as data URIs, other types show the MIME type as the log display name
+
 ## [1.9.2]
 - :beetle: fixed `TestCaseHookDefinition.name` defaulting to `undefined` when no name option is provided
 - :pencil: removed dead `getInvocationParameters` methods from hook definitions (referenced non-existent base methods and were never called)

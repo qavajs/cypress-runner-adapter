@@ -3,6 +3,21 @@ module.exports = function makeMochaTest(tests) {
         cy.log(data);
     }
 
+    function attach(data, options) {
+        const type = typeof options === 'string' ? options : options?.mediaType ? options.mediaType : 'text/plain';
+        const name = options?.name ?? 'attachment';
+        const src = typeof data === 'string' && data.startsWith('data:')
+            ? data
+            : `data:${type};base64,${btoa(unescape(encodeURIComponent(String(data))))}`;
+        cy.then(() => {
+            Cypress.log({
+                displayName: name,
+                message: type,
+                consoleProps: () => ({ name, src })
+            });
+        });
+    }
+
     function keyword(step) {
         switch (step.type) {
             case 'Context': return 'Given';
@@ -63,7 +78,7 @@ module.exports = function makeMochaTest(tests) {
         describe('Scenario: ' + test.name, { testIsolation: false }, function () {
             const world = new supportCodeLibrary.World({
                 log,
-                attach: log,
+                attach,
                 link: log
             });
             world.executeStep = executeStepByText;
@@ -72,12 +87,14 @@ module.exports = function makeMochaTest(tests) {
             let duration = 0;
             let exception;
             let message;
+            let willBeRetried = false;
             afterEach(function () {
                 if (this.currentTest.state !== 'passed') {
                     skip = true;
                 }
                 duration += this.currentTest.duration;
                 if (this.currentTest.state === 'failed') {
+                    willBeRetried = this.currentTest.currentRetry() < this.currentTest._retries;
                     status = this.currentTest.state;
                     exception = this.currentTest.err;
                     message = this.currentTest.err?.message;
@@ -150,7 +167,7 @@ module.exports = function makeMochaTest(tests) {
                                 message
                             },
                             gherkinDocument: tests,
-                            willBeRetried: false,
+                            willBeRetried,
                             testCaseStartedId: test.id,
                         }]);
                     });
