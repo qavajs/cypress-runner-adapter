@@ -2,7 +2,26 @@ const { mkdirSync, writeFileSync, readFileSync } = require('node:fs');
 const { dirname } = require('node:path');
 const { randomUUID } = require('node:crypto');
 const { AstBuilder, compile, GherkinClassicTokenMatcher, Parser } = require('@cucumber/gherkin');
-const webpackPreprocessor = require('@cypress/webpack-preprocessor')();
+const webpackPreprocessor = require('@cypress/webpack-preprocessor')({
+    webpackOptions: {
+        mode: 'development',
+        resolve: { extensions: ['.ts', '.js'] },
+        module: {
+            rules: [
+                {
+                    test: /\.tsx?$/,
+                    exclude: [/node_modules/],
+                    use: [{ loader: 'ts-loader', options: { transpileOnly: true } }]
+                },
+                {
+                    test: /\.jsx?$/,
+                    exclude: [/node_modules/],
+                    use: [{ loader: 'babel-loader', options: { presets: ['@babel/preset-env'] } }]
+                }
+            ]
+        }
+    }
+});
 const tagExpressionParser = require('@cucumber/tag-expressions').default;
 const makeMochaTestDescribe = require('./make_mocha_tests_describe');
 const makeMochaTestIt = require('./make_mocha_tests_it');

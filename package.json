@@ -1,6 +1,6 @@
 {
   "name": "@qavajs/cypress-runner-adapter",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "main": "supportCodeLibrary/index.js",
   "exports": {
     ".": "./supportCodeLibrary/index.js",
@@ -16,7 +16,11 @@
     "debug": "cypress open --config-file test/cypress.config.js",
     "test": "cypress run --config-file test/cypress.config.js",
     "debug:it": "MODE=it cypress open --config-file test/cypress.config.js",
-    "test:it": "MODE=it cypress run --config-file test/cypress.config.js"
+    "test:it": "MODE=it cypress run --config-file test/cypress.config.js",
+    "debug:ts": "cypress open --config-file test/cypress-ts.config.js",
+    "test:ts": "cypress run --config-file test/cypress-ts.config.js",
+    "debug:ts:it": "MODE=it cypress open --config-file test/cypress-ts.config.js",
+    "test:ts:it": "MODE=it cypress run --config-file test/cypress-ts.config.js"
   },
   "license": "MIT",
   "description": "feature file preprocessor",
@@ -35,10 +39,12 @@
     "@cucumber/cucumber-expressions": "^19.0.0",
     "@cucumber/gherkin": "^39.1.0",
     "@cucumber/tag-expressions": "^9.1.0",
-    "@cypress/webpack-preprocessor": "^7.1.0"
+    "@cypress/webpack-preprocessor": "^7.1.0",
+    "ts-loader": "^9.5.7"
   },
   "devDependencies": {
-    "cypress": "^15.14.2"
+    "cypress": "^15.14.2",
+    "typescript": "^6.0.3"
   },
   "keywords": [
     "cypress",

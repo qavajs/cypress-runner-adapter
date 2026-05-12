@@ -30,6 +30,47 @@ module.exports = defineConfig({
 });
 ```
 
+### TypeScript
+
+TypeScript support is built-in. Point `supportFile` at a `.ts` file and the adapter will compile it automatically:
+
+```javascript
+const { defineConfig } = require('cypress');
+const cucumber = require('@qavajs/cypress-runner-adapter/adapter');
+
+module.exports = defineConfig({
+    e2e: {
+        specPattern: 'cypress/feature/**/*.feature',
+        supportFile: 'cypress/support/e2e.ts',
+        setupNodeEvents(on, config) {
+            on('file:preprocessor', cucumber);
+        },
+    },
+});
+```
+
+```typescript
+// cypress/support/e2e.ts
+import { Given, When, Then, setWorldConstructor, World, WorldOptions } from '@qavajs/cypress-runner-adapter';
+
+class CustomWorld extends World {
+    myValue: string | null;
+
+    constructor(options: WorldOptions) {
+        super(options);
+        this.myValue = null;
+    }
+}
+
+setWorldConstructor(CustomWorld);
+
+Given('I navigate to {string}', function (this: CustomWorld, url: string) {
+    cy.visit(url);
+});
+```
+
+A `tsconfig.json` is not required but recommended. The adapter uses `transpileOnly: true` so type errors will not block the test run.
+
 ## Step Definitions
 
 Define steps in your support file (e.g. `cypress/support/e2e.js`):

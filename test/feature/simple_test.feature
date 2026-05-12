@@ -95,3 +95,11 @@ Feature: test feature
 
   Scenario: attach with mime type
     When attach value with mime type
+
+  Scenario: pending
+    When pending step
+    And simple step
+
+  Scenario: skipped
+    When skipped step    
+    And simple step
