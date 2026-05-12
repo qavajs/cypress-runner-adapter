@@ -50,7 +50,7 @@ module.exports = function makeMochaTest(tests) {
             step: { text, argument },
             world: this
         });
-        step.code.apply(this, parameters);
+        return step.code.apply(this, parameters);
     }
 
     function executeStep(pickle, world) {
@@ -60,7 +60,7 @@ module.exports = function makeMochaTest(tests) {
         if (pickle.argument && pickle.argument.docString) {
             Cypress.log({ displayName: 'Multiline', message: pickle.argument.docString.content });
         }
-        executeStepByText.call(world, pickle.text, pickle.argument);
+        return executeStepByText.call(world, pickle.text, pickle.argument);
     }
 
     if (supportCodeLibrary.beforeTestRunHookDefinitions.length > 0) {
@@ -150,7 +150,12 @@ module.exports = function makeMochaTest(tests) {
                             }]);
                         }
                     }
-                    executeStep(step, world);
+                    const stepResult = executeStep(step, world);
+                    if (stepResult === 'pending' || stepResult === 'skipped') {
+                        skip = true;
+                        status = stepResult;
+                        return this.skip();
+                    }
                 });
             }
             for (const afterTest of supportCodeLibrary.afterTestCaseHookDefinitions) {

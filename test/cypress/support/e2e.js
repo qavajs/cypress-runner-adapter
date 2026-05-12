@@ -122,3 +122,11 @@ When('attach value with mime type', function () {
 When('link value', function () {
     this.link('https://example.com');
 });
+
+When('pending step', function () {
+    return 'pending';
+});
+
+When('skipped step', function () {
+    return 'skipped';
+});

@@ -14,6 +14,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 :microscope: - experimental
 
+## [1.11.0]
+- :rocket: added built-in TypeScript support — `.ts` support files are compiled automatically via `ts-loader` with no extra configuration required
+
 ## [1.10.0]
 - :rocket: added `defineStep` to type declarations
 - :rocket: added `setDefaultTimeout` export to set `defaultCommandTimeout` via Cucumber-compatible API
