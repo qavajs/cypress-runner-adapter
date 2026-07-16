@@ -1,4 +1,4 @@
-module.exports = function makeMochaTest(tests) {
+export default function makeMochaTest(tests) {
     function log(data) {
         cy.log(data);
     }

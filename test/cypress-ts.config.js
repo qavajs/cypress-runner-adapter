@@ -1,7 +1,7 @@
-const {defineConfig} = require('cypress');
-const cucumber = require('../adapter');
+import { defineConfig } from 'cypress';
+import cucumber from '../adapter/index.js';
 
-module.exports = defineConfig({
+export default defineConfig({
     e2e: {
         specPattern: 'test/feature/**/*.feature',
         supportFile: 'test/cypress-ts/support/e2e.ts',

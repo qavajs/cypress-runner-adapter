@@ -1,5 +1,5 @@
-import Definition from './definition';
-import {PickleTagFilter} from './pickle_filter';
+import Definition from './definition.js';
+import { PickleTagFilter } from './pickle_filter.js';
 
 export default class TestStepHookDefinition extends Definition {
     constructor(data) {

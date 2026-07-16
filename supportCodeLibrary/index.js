@@ -1,10 +1,10 @@
 import { CucumberExpression, RegularExpression } from '@cucumber/cucumber-expressions'
-import StepDefinition from './step_definition';
-import { SourcedParameterTypeRegistry } from './sourced_parameter_type_registry';
-import TestCaseHookDefinition from './test_case_hook_definition';
-import TestStepHookDefinition from './test_step_hook_definition';
-import { buildParameterType } from './build_parameter_type';
-import TestRunHookDefinition from './test_run_hook_definition';
+import StepDefinition from './step_definition.js';
+import { SourcedParameterTypeRegistry } from './sourced_parameter_type_registry.js';
+import TestCaseHookDefinition from './test_case_hook_definition.js';
+import TestStepHookDefinition from './test_step_hook_definition.js';
+import { buildParameterType } from './build_parameter_type.js';
+import TestRunHookDefinition from './test_run_hook_definition.js';
 
 export class World {
     constructor(options) {
