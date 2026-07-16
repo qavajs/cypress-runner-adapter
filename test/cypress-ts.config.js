@@ -9,6 +9,7 @@ export default defineConfig({
             on('file:preprocessor', cucumber);
         },
         viewportWidth: 1920,
-        viewportHeight: 1080
+        viewportHeight: 1080,
+        defaultBrowser: 'chrome',
     },
 });
