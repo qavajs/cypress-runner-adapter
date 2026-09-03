@@ -41,7 +41,8 @@
     "@cucumber/gherkin": "^42.0.1",
     "@cucumber/tag-expressions": "^11.0.1",
     "@cypress/webpack-preprocessor": "^8.0.0",
-    "ts-loader": "^9.6.2"
+    "esbuild": "^0.28.2",
+    "esbuild-loader": "^4.5.0"
   },
   "devDependencies": {
     "cypress": "^16.0.0",
@@ -56,5 +57,8 @@
     "gherkin",
     "test",
     "test-automation"
-  ]
+  ],
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
 }

@@ -16,7 +16,7 @@ const webpackPreprocessor = createWebpackPreprocessor({
                 {
                     test: /\.tsx?$/,
                     exclude: [/node_modules/],
-                    use: [{ loader: 'ts-loader', options: { transpileOnly: true } }]
+                    use: [{ loader: 'esbuild-loader', options: { target: 'es2020' } }]
                 },
                 {
                     test: /\.jsx?$/,
