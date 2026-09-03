@@ -1,11 +1,12 @@
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { AstBuilder, compile, GherkinClassicTokenMatcher, Parser } from '@cucumber/gherkin';
 import createWebpackPreprocessor from '@cypress/webpack-preprocessor';
 import { parse as tagExpressionParser } from '@cucumber/tag-expressions';
-import makeMochaTestDescribe from './make_mocha_tests_describe.js';
-import makeMochaTestIt from './make_mocha_tests_it.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const webpackPreprocessor = createWebpackPreprocessor({
     webpackOptions: {
@@ -33,10 +34,15 @@ const builder = new AstBuilder(uuidFn);
 const matcher = new GherkinClassicTokenMatcher();
 const parser = new Parser(builder, matcher);
 
-const makeMochaTest = process.env.MODE === 'it' ? makeMochaTestIt : makeMochaTestDescribe;
+const modeFile = process.env.MODE === 'it' ? 'make_mocha_tests_it.js' : 'make_mocha_tests_describe.js';
+
+function getMakeMochaTestSource() {
+    const src = readFileSync(join(__dirname, modeFile), 'utf-8');
+    return src.replace(/^export\s+default\s+/, '');
+}
 
 function adapter(testCases) {
-    return `(${makeMochaTest.toString()})(${JSON.stringify(testCases)});`;
+    return `(${getMakeMochaTestSource()})(${JSON.stringify(testCases)});`;
 }
 
 export default async function cucumber(file) {
