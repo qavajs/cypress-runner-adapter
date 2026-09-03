@@ -1,6 +1,7 @@
 {
   "name": "@qavajs/cypress-runner-adapter",
-  "version": "1.11.0",
+  "version": "2.0.0",
+  "type": "module",
   "main": "supportCodeLibrary/index.js",
   "exports": {
     ".": "./supportCodeLibrary/index.js",
@@ -14,13 +15,13 @@
   ],
   "scripts": {
     "debug": "cypress open --config-file test/cypress.config.js",
-    "test": "cypress run --config-file test/cypress.config.js",
+    "test": "cypress run --config-file test/cypress.config.js --browser chrome",
     "debug:it": "MODE=it cypress open --config-file test/cypress.config.js",
-    "test:it": "MODE=it cypress run --config-file test/cypress.config.js",
+    "test:it": "MODE=it cypress run --config-file test/cypress.config.js --browser chrome",
     "debug:ts": "cypress open --config-file test/cypress-ts.config.js",
-    "test:ts": "cypress run --config-file test/cypress-ts.config.js",
+    "test:ts": "cypress run --config-file test/cypress-ts.config.js --browser chrome",
     "debug:ts:it": "MODE=it cypress open --config-file test/cypress-ts.config.js",
-    "test:ts:it": "MODE=it cypress run --config-file test/cypress-ts.config.js"
+    "test:ts:it": "MODE=it cypress run --config-file test/cypress-ts.config.js --browser chrome"
   },
   "license": "MIT",
   "description": "feature file preprocessor",
@@ -36,15 +37,16 @@
   },
   "homepage": "https://qavajs.github.io/docs/intro",
   "dependencies": {
-    "@cucumber/cucumber-expressions": "^19.0.0",
-    "@cucumber/gherkin": "^39.1.0",
-    "@cucumber/tag-expressions": "^9.1.0",
-    "@cypress/webpack-preprocessor": "^7.1.0",
-    "ts-loader": "^9.5.7"
+    "@cucumber/cucumber-expressions": "^20.1.0",
+    "@cucumber/gherkin": "^42.0.1",
+    "@cucumber/tag-expressions": "^11.0.1",
+    "@cypress/webpack-preprocessor": "^8.0.0",
+    "esbuild": "^0.28.2",
+    "esbuild-loader": "^4.5.0"
   },
   "devDependencies": {
-    "cypress": "^15.14.2",
-    "typescript": "^6.0.3"
+    "cypress": "^16.0.0",
+    "typescript": "^7.0.2"
   },
   "keywords": [
     "cypress",
@@ -55,5 +57,8 @@
     "gherkin",
     "test",
     "test-automation"
-  ]
+  ],
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
 }

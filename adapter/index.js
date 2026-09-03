@@ -1,8 +1,13 @@
-const { mkdirSync, writeFileSync, readFileSync } = require('node:fs');
-const { dirname } = require('node:path');
-const { randomUUID } = require('node:crypto');
-const { AstBuilder, compile, GherkinClassicTokenMatcher, Parser } = require('@cucumber/gherkin');
-const webpackPreprocessor = require('@cypress/webpack-preprocessor')({
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { AstBuilder, compile, GherkinClassicTokenMatcher, Parser } from '@cucumber/gherkin';
+import createWebpackPreprocessor from '@cypress/webpack-preprocessor';
+import { parse as tagExpressionParser } from '@cucumber/tag-expressions';
+import makeMochaTestDescribe from './make_mocha_tests_describe.js';
+import makeMochaTestIt from './make_mocha_tests_it.js';
+
+const webpackPreprocessor = createWebpackPreprocessor({
     webpackOptions: {
         mode: 'development',
         resolve: { extensions: ['.ts', '.js'] },
@@ -11,7 +16,7 @@ const webpackPreprocessor = require('@cypress/webpack-preprocessor')({
                 {
                     test: /\.tsx?$/,
                     exclude: [/node_modules/],
-                    use: [{ loader: 'ts-loader', options: { transpileOnly: true } }]
+                    use: [{ loader: 'esbuild-loader', options: { target: 'es2020' } }]
                 },
                 {
                     test: /\.jsx?$/,
@@ -22,9 +27,6 @@ const webpackPreprocessor = require('@cypress/webpack-preprocessor')({
         }
     }
 });
-const tagExpressionParser = require('@cucumber/tag-expressions').default;
-const makeMochaTestDescribe = require('./make_mocha_tests_describe');
-const makeMochaTestIt = require('./make_mocha_tests_it');
 
 const uuidFn = () => randomUUID();
 const builder = new AstBuilder(uuidFn);
@@ -37,7 +39,7 @@ function adapter(testCases) {
     return `(${makeMochaTest.toString()})(${JSON.stringify(testCases)});`;
 }
 
-module.exports = async function cucumber(file) {
+export default async function cucumber(file) {
     const { filePath, outputPath } = file;
     if (!filePath.endsWith('.feature')) {
         return webpackPreprocessor(file);

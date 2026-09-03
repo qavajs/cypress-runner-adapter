@@ -1,7 +1,7 @@
-const {defineConfig} = require('cypress');
-const cucumber = require('../adapter');
+import { defineConfig } from 'cypress';
+import cucumber from '../adapter/index.js';
 
-module.exports = defineConfig({
+export default defineConfig({
     e2e: {
         specPattern: 'test/feature/**/*.feature',
         supportFile: 'test/cypress/support/e2e.js',
@@ -9,6 +9,7 @@ module.exports = defineConfig({
             on('file:preprocessor', cucumber);
         },
         viewportWidth: 1920,
-        viewportHeight: 1080
+        viewportHeight: 1080,
+        defaultBrowser: 'chrome',
     },
 });

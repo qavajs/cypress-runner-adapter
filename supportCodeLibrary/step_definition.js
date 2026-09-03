@@ -1,7 +1,7 @@
-import Definition from './definition';
-import { doesHaveValue } from './value_checker';
-import DataTable from './data_table';
-import { parseStepArgument } from './step_argument';
+import Definition from './definition.js';
+import { doesHaveValue } from './value_checker.js';
+import DataTable from './data_table.js';
+import { parseStepArgument } from './step_argument.js';
 
 export default class StepDefinition extends Definition {
     constructor(data) {

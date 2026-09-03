@@ -1,4 +1,4 @@
-import {ParameterType} from '@cucumber/cucumber-expressions'
+import { ParameterType } from '@cucumber/cucumber-expressions'
 
 export function buildParameterType({ name, regexp, transformer, useForSnippets, preferForRegexpMatch }) {
     if (typeof useForSnippets !== 'boolean') useForSnippets = true

@@ -1,4 +1,4 @@
-import { doesHaveValue } from './value_checker';
+import { doesHaveValue } from './value_checker.js';
 
 export function parseStepArgument(
     arg,

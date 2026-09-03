@@ -14,6 +14,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 :microscope: - experimental
 
+## [2.0.0]
+- :rocket: migrated package to ESM (`"type": "module"`); all `require`/`module.exports` usages converted to `import`/`export`
+- :pencil: updated @cucumber/cucumber-expressions, @cucumber/gherkin, @cucumber/tag-expressions, @cypress/webpack-preprocessor, ts-loader, cypress
+
 ## [1.11.0]
 - :rocket: added built-in TypeScript support — `.ts` support files are compiled automatically via `ts-loader` with no extra configuration required
 

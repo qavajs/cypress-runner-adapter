@@ -1,4 +1,4 @@
-import { After, AfterStep, Before, BeforeStep, BeforeAll, AfterAll } from '../../../supportCodeLibrary/index';
+import { After, AfterStep, Before, BeforeStep, BeforeAll, AfterAll } from '../../../supportCodeLibrary/index.js';
 
 BeforeAll(function () {
     cy.log('before all hook');
