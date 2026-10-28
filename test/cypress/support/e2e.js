@@ -1,6 +1,6 @@
 import './hooks.js';
 import './parameter_types.js';
-import { When, Given, Then, setWorldConstructor, Template, World } from '../../../supportCodeLibrary/index.js';
+import { When, Given, Then, After, AfterStep, setWorldConstructor, Template, World } from '../../../supportCodeLibrary/index.js';
 
 class CustomWorld extends World {
     constructor(options) {
@@ -28,12 +28,12 @@ Then('multiline step', function (multiline) {
 });
 
 When('search {string}', function (searchTerm) {
-    cy.get('#p-search input[type="search"]').type(searchTerm);
+    cy.get('#search').type(searchTerm);
     cy.get('[role="option"]').first().should('contain.text', searchTerm).click();
 });
 
 Then('title should be {string}', function (expectedTitle) {
-    cy.get('.mw-content-container .mw-page-title-main')
+    cy.get('.page-title')
         .first()
         .should('be.visible')
         .should('contain.text', expectedTitle);
@@ -68,8 +68,8 @@ When('template step', Template(() => `
     log
 `));
 
-When('search in wikipedia {string}', Template(term => `
-    open 'https://en.wikipedia.org/' url
+When('search in catalog {string}', Template(term => `
+    open 'test/fixtures/search.html' url
     search '${term}'
 `));
 
@@ -129,4 +129,58 @@ When('pending step', function () {
 
 When('skipped step', function () {
     return 'skipped';
+});
+
+Then('current scenario should have {int} steps', function (count) {
+    cy.wrap(this.pickle.steps.length).should('equal', count);
+});
+
+// state shared between retry attempts
+let attempts = 0;
+const retryReport = { afterStep: [], after: [] };
+
+AfterStep({ tags: '@retry' }, function ({ pickleStep, result }) {
+    retryReport.afterStep.push({ text: pickleStep.text, status: result.status });
+});
+
+After({ tags: '@retry' }, function ({ result, willBeRetried }) {
+    retryReport.after.push({ status: result.status, willBeRetried });
+});
+
+When('fail on first attempt', function () {
+    attempts++;
+    if (attempts === 1) {
+        cy.then(() => {
+            throw new Error('first attempt failure');
+        });
+    }
+});
+
+Then('retry should have been reported', function () {
+    cy.then(() => {
+        const failedSteps = retryReport.afterStep.filter(step => step.status === 'failed');
+        expect(failedSteps.map(step => step.text)).to.deep.equal(['fail on first attempt']);
+        // After hook runs per attempt only in 'it' mode
+        if (retryReport.after.length > 0) {
+            expect(retryReport.after[0]).to.deep.equal({ status: 'failed', willBeRetried: true });
+        }
+    });
+});
+
+When('step with timeout', { timeout: 1234 }, function () {
+    cy.then(() => {
+        expect(Cypress.config('defaultCommandTimeout')).to.equal(1234);
+    });
+});
+
+Then('command timeout should be restored', function () {
+    cy.then(() => {
+        expect(Cypress.config('defaultCommandTimeout')).to.equal(4000);
+    });
+});
+
+Then('viewport width should be {int}', function (width) {
+    cy.then(() => {
+        expect(Cypress.config('viewportWidth')).to.equal(width);
+    });
 });

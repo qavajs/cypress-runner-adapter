@@ -1,6 +1,5 @@
-import { CucumberExpression, RegularExpression } from '@cucumber/cucumber-expressions'
+import { CucumberExpression, ParameterTypeRegistry, RegularExpression } from '@cucumber/cucumber-expressions';
 import StepDefinition from './step_definition.js';
-import { SourcedParameterTypeRegistry } from './sourced_parameter_type_registry.js';
 import TestCaseHookDefinition from './test_case_hook_definition.js';
 import TestStepHookDefinition from './test_step_hook_definition.js';
 import { buildParameterType } from './build_parameter_type.js';
@@ -23,80 +22,100 @@ const supportCodeLibrary = {
     beforeTestRunHookDefinitions: [],
     beforeTestStepHookDefinitions: [],
     World,
-    parameterTypeRegistry: new SourcedParameterTypeRegistry()
+    parameterTypeRegistry: new ParameterTypeRegistry()
 };
 
 window.supportCodeLibrary = supportCodeLibrary;
-export function defineStep(keyword, pattern, code) {
-    const expression = typeof pattern === 'string'
-        ? new CucumberExpression(pattern, supportCodeLibrary.parameterTypeRegistry)
-        : new RegularExpression(pattern, supportCodeLibrary.parameterTypeRegistry);
-    supportCodeLibrary.stepDefinitions.push(new StepDefinition({
-        keyword,
-        expression,
-        pattern,
-        code
-    }));
+
+/**
+ * Define step
+ * @param {string} keyword - Given | When | Then
+ * @param {string | RegExp} pattern - cucumber expression or regular expression
+ * @param {{ timeout?: number } | Function} optionsOrCode - step options or step implementation
+ * @param {Function} [code] - step implementation
+ */
+export function defineStep(keyword, pattern, optionsOrCode, code) {
+    const options = code ? optionsOrCode : {};
+    const handler = code ?? optionsOrCode;
+    const expression =
+        typeof pattern === 'string'
+            ? new CucumberExpression(pattern, supportCodeLibrary.parameterTypeRegistry)
+            : new RegularExpression(pattern, supportCodeLibrary.parameterTypeRegistry);
+    supportCodeLibrary.stepDefinitions.push(
+        new StepDefinition({
+            keyword,
+            expression,
+            pattern,
+            options,
+            code: handler
+        })
+    );
 }
 
-export function When(pattern, code) {
-    defineStep('When', pattern, code);
+export function When(pattern, optionsOrCode, code) {
+    defineStep('When', pattern, optionsOrCode, code);
 }
 
-export function Then(pattern, code) {
-    defineStep('Then', pattern, code);
+export function Then(pattern, optionsOrCode, code) {
+    defineStep('Then', pattern, optionsOrCode, code);
 }
 
-export function Given(pattern, code) {
-    defineStep('Given', pattern, code);
+export function Given(pattern, optionsOrCode, code) {
+    defineStep('Given', pattern, optionsOrCode, code);
+}
+
+function defineHook(definitions, HookDefinition, name, optionsOrCode, code) {
+    const options = { name, ...(code ? optionsOrCode : {}) };
+    definitions.push(
+        new HookDefinition({
+            code: code ?? optionsOrCode,
+            options
+        })
+    );
 }
 
 export function Before(optionsOrCode, code) {
-    const options = code ? Object.assign({ name: 'Before' }, optionsOrCode) : { name: 'Before' };
-    const handler = code ?? optionsOrCode;
-    supportCodeLibrary.beforeTestCaseHookDefinitions.push(new TestCaseHookDefinition({
-        code: handler,
-        options
-    }));
+    defineHook(supportCodeLibrary.beforeTestCaseHookDefinitions, TestCaseHookDefinition, 'Before', optionsOrCode, code);
 }
 
 export function After(optionsOrCode, code) {
-    const options = code ? Object.assign({ name: 'After' }, optionsOrCode) : { name: 'After' };
-    const handler = code ?? optionsOrCode;
-    supportCodeLibrary.afterTestCaseHookDefinitions.push(new TestCaseHookDefinition({
-        code: handler,
-        options
-    }));
+    defineHook(supportCodeLibrary.afterTestCaseHookDefinitions, TestCaseHookDefinition, 'After', optionsOrCode, code);
 }
 
 export function BeforeStep(optionsOrCode, code) {
-    const options = code ? optionsOrCode : { name: 'BeforeStep' };
-    const handler = code ?? optionsOrCode;
-    supportCodeLibrary.beforeTestStepHookDefinitions.push(new TestStepHookDefinition({
-        code: handler,
-        options
-    }));
+    defineHook(
+        supportCodeLibrary.beforeTestStepHookDefinitions,
+        TestStepHookDefinition,
+        'BeforeStep',
+        optionsOrCode,
+        code
+    );
 }
 
 export function AfterStep(optionsOrCode, code) {
-    const options = code ? optionsOrCode : { name: 'AfterStep' };
-    const handler = code ?? optionsOrCode;
-    supportCodeLibrary.afterTestStepHookDefinitions.push(new TestStepHookDefinition({
-        code: handler,
-        options
-    }));
+    defineHook(
+        supportCodeLibrary.afterTestStepHookDefinitions,
+        TestStepHookDefinition,
+        'AfterStep',
+        optionsOrCode,
+        code
+    );
 }
 
 export function BeforeAll(handler) {
-    supportCodeLibrary.beforeTestRunHookDefinitions.push(new TestRunHookDefinition({
-        code: handler,
-    }));
+    supportCodeLibrary.beforeTestRunHookDefinitions.push(
+        new TestRunHookDefinition({
+            code: handler
+        })
+    );
 }
 
 export function AfterAll(handler) {
-    supportCodeLibrary.afterTestRunHookDefinitions.push(new TestRunHookDefinition({
-        code: handler,
-    }));
+    supportCodeLibrary.afterTestRunHookDefinitions.push(
+        new TestRunHookDefinition({
+            code: handler
+        })
+    );
 }
 
 export function setWorldConstructor(world) {
@@ -104,8 +123,8 @@ export function setWorldConstructor(world) {
 }
 
 export function defineParameterType(options) {
-    const parameterType = buildParameterType(options)
-    supportCodeLibrary.parameterTypeRegistry.defineSourcedParameterType(parameterType, {})
+    const parameterType = buildParameterType(options);
+    supportCodeLibrary.parameterTypeRegistry.defineParameterType(parameterType);
 }
 
 export function setDefaultTimeout(milliseconds) {
@@ -124,7 +143,7 @@ export function setDefaultTimeout(milliseconds) {
 export function Template(scenario) {
     return new Proxy(scenario, {
         apply: function (template, world, args) {
-            const scenario = template(...args) ;
+            const scenario = template(...args);
             const steps = scenario
                 .split('\n')
                 .map(step => step.trim())
@@ -132,8 +151,6 @@ export function Template(scenario) {
             for (const step of steps) {
                 world.executeStep(step);
             }
-        },
-    })
+        }
+    });
 }
-
-

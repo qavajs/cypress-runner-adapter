@@ -16,10 +16,10 @@ npm install @qavajs/cypress-runner-adapter
 Register the preprocessor in `cypress.config.js`:
 
 ```javascript
-const { defineConfig } = require('cypress');
-const cucumber = require('@qavajs/cypress-runner-adapter/adapter');
+import { defineConfig } from 'cypress';
+import cucumber from '@qavajs/cypress-runner-adapter/adapter';
 
-module.exports = defineConfig({
+export default defineConfig({
     e2e: {
         specPattern: 'cypress/feature/**/*.feature',
         supportFile: 'cypress/support/e2e.js',
@@ -30,15 +30,50 @@ module.exports = defineConfig({
 });
 ```
 
+The package is ESM-only. CommonJS configs (`require(...)`) work on Node.js 22+ via `require(esm)`.
+
+### Options
+
+`setupCucumber` registers the preprocessor and enables features that need access to Cypress config:
+
+```javascript
+import { defineConfig } from 'cypress';
+import { setupCucumber } from '@qavajs/cypress-runner-adapter/adapter';
+
+export default defineConfig({
+    e2e: {
+        specPattern: 'cypress/feature/**/*.feature',
+        supportFile: 'cypress/support/e2e.js',
+        setupNodeEvents(on, config) {
+            return setupCucumber(on, config, {
+                mode: 'describe',                    // 'describe' | 'it', default: MODE env variable or 'describe'
+                tags: '@smoke',                      // default: TAGS Cypress env (--env TAGS=...), then TAGS env variable
+                messages: 'reports/messages.ndjson'  // optional Cucumber messages report
+            });
+        },
+    },
+});
+```
+
+Compared to registering the preprocessor directly, `setupCucumber`:
+- excludes feature files without scenarios matching `tags`, so Cypress does not open a browser for them;
+- writes a [Cucumber messages](#reports) report when `messages` is set.
+
+`setupNodeEvents` must return the config returned by `setupCucumber`.
+
+`createCucumberPreprocessor({ mode, tags })` creates just the preprocessor, if you need to combine it with another one.
+
+Feature files are watched in `cypress open`, so edits rerun the spec automatically.
+
 ### TypeScript
 
 TypeScript support is built-in. Point `supportFile` at a `.ts` file and the adapter will compile it automatically:
 
 ```javascript
-const { defineConfig } = require('cypress');
-const cucumber = require('@qavajs/cypress-runner-adapter/adapter');
+import { defineConfig } from 'cypress';
+import cucumber from '@qavajs/cypress-runner-adapter/adapter';
 
-module.exports = defineConfig({
+export default defineConfig({
     e2e: {
         specPattern: 'cypress/feature/**/*.feature',
         supportFile: 'cypress/support/e2e.ts',
@@ -69,7 +104,7 @@ Given('I navigate to {string}', function (this: CustomWorld, url: string) {
 });
 ```
 
-A `tsconfig.json` is not required but recommended. The adapter uses `transpileOnly: true` so type errors will not block the test run.
+A `tsconfig.json` is not required but recommended. Support files are transpiled with esbuild, so type errors will not block the test run — run `tsc --noEmit` separately to type check.
 
 ## Step Definitions
 
@@ -100,15 +135,48 @@ Then('{string} should be visible', function (selector) {
 });
 ```
 
+### Step Options
+
+Steps accept an optional options object. `timeout` sets the Cypress command timeout (`defaultCommandTimeout`) for commands of this step.
+It limits each command, not the total duration of the step:
+
+```javascript
+When('I wait for report generation', { timeout: 60000 }, function () {
+    cy.get('.report').should('be.visible');
+});
+```
+
+`setDefaultTimeout(ms)` changes `defaultCommandTimeout` for all steps the same way.
+
+TypeScript users can type step arguments via generics:
+
+```typescript
+When<CustomWorld, [string, number]>('I add {string} {int} times', function (item, count) {
+    // item: string, count: number
+});
+```
+
 ## Hooks
 
 All standard Cucumber hooks are supported. Hooks receive a `params` object with context about the current test.
+
+| Hook | Params |
+|---|---|
+| `Before` | `gherkinDocument`, `pickle`, `testCaseStartedId`, `willBeRetried` |
+| `After` | `gherkinDocument`, `pickle`, `testCaseStartedId`, `willBeRetried`, `result`, `error` |
+| `BeforeStep` | `gherkinDocument`, `pickle`, `pickleStep`, `testCaseStartedId`, `testStepId` |
+| `AfterStep` | `gherkinDocument`, `pickle`, `pickleStep`, `testCaseStartedId`, `testStepId`, `result`, `error` |
+
+`result` is `{ status, duration, message, exception }`, where `duration` is in milliseconds. `error` is the same as `result.exception`.
+`tags` option filters hooks by scenario tags, for step hooks as well.
+
+`BeforeAll` and `AfterAll` run once per feature file, because Cypress runs every spec file in isolation.
 
 ```javascript
 import { Before, After, BeforeStep, AfterStep, BeforeAll, AfterAll } from '@qavajs/cypress-runner-adapter';
 
 BeforeAll(function () {
-    // runs once before all tests
+    // runs once before all tests of a feature file
 });
 
 Before(function ({ gherkinDocument, pickle, testCaseStartedId }) {
@@ -123,8 +191,12 @@ Before({ name: 'setup' }, function () {
     // named hook
 });
 
-BeforeStep(function ({ testStepId }) {
+BeforeStep(function ({ pickleStep, testStepId }) {
     // runs before each step
+});
+
+BeforeStep({ tags: '@login' }, function () {
+    // runs before each step of scenarios tagged with @login
 });
 
 AfterStep(function ({ result }) {
@@ -136,7 +208,7 @@ After(function ({ result, error }) {
 });
 
 AfterAll(function () {
-    // runs once after all tests
+    // runs once after all tests of a feature file
 });
 ```
 
@@ -164,7 +236,7 @@ The `World` class is instantiated for each scenario and is available as `this` i
 | Property / Method | Description |
 |---|---|
 | `this.log(message)` | Log a message to the Cypress command log |
-| `this.attach(data)` | Attach data to the test report |
+| `this.attach(data, mediaType)` | Attach data to the test report; `mediaType` is a MIME type string or `{ mediaType, name }` |
 | `this.link(url)` | Attach a link to the test report |
 | `this.executeStep(text)` | Programmatically execute a step by its text |
 
@@ -206,6 +278,42 @@ When('I search for {string} on Wikipedia', Template(term => `
 `));
 ```
 
+## Special Tags
+
+| Tag | Effect |
+|---|---|
+| `@only` | Run only scenarios tagged with `@only` in the spec (`describe.only` / `it.only`) |
+| `@skip` | Skip scenario (`describe.skip` / `it.skip`) |
+| `@<config>(<value>)` | Override Cypress test configuration, e.g. `@retries(2)`, `@viewportWidth(800)`, `@defaultCommandTimeout(10000)` |
+
+Configuration tags accept any option known to `Cypress.config()`; values are parsed as JSON, otherwise passed as strings.
+Options that Cypress allows only at suite level (e.g. `testIsolation`) work only in `describe` mode.
+
+## Errors
+
+Failures of steps and hooks include the feature file location:
+
+```
+AssertionError: expected 1 to equal 2
+
+    at cypress/feature/login.feature:12
+```
+
+Gherkin syntax errors include the path of the feature file.
+
+## Undefined Steps
+
+When a step has no matching definition, the test fails with a ready-to-use snippet:
+
+```
+Step 'I open "home" page' is not defined. Implement it with the snippet below:
+
+When('I open {string} page', function (string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+```
+
 ## Tag Filtering
 
 Filter scenarios using Cucumber tag expressions via the `TAGS` environment variable:
@@ -215,6 +323,24 @@ TAGS='@smoke' npx cypress run
 TAGS='@smoke and not @slow' npx cypress run
 TAGS='@login or @auth' npx cypress run
 ```
+
+Alternatively pass `tags` to `createCucumberPreprocessor` (see [Options](#options)).
+
+## Reports
+
+With `messages` option `setupCucumber` writes a [Cucumber messages](https://github.com/cucumber/messages) NDJSON report,
+compatible with standard Cucumber formatters (HTML, JUnit, JSON, Allure, ...).
+`this.log`, `this.attach` and `this.link` are included as attachments.
+
+```javascript
+setupNodeEvents(on, config) {
+    return setupCucumber(on, config, { messages: 'reports/messages.ndjson' });
+}
+```
+
+The report is finalized on `after:run`, so it is complete in `cypress run`.
+Cypress keeps only the last handler of `before:run`/`after:run` events — if your config registers them too,
+use a plugin that allows multiple handlers (e.g. `cypress-on-fix`).
 
 ## Translation Modes
 

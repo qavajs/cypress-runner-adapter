@@ -20,20 +20,30 @@ export interface GherkinDocument {
     comments: object[];
 }
 
+export interface PickleStep {
+    id: string;
+    text: string;
+    type?: 'Context' | 'Action' | 'Outcome' | 'Unknown';
+    argument?: object;
+    astNodeIds: string[];
+}
+
 export interface Pickle {
     id: string;
     uri: string;
     name: string;
     language: string;
-    steps: { id: string; text: string; argument?: object }[];
+    steps: PickleStep[];
     tags: { name: string; astNodeId: string }[];
     astNodeIds: string[];
 }
 
 export interface TestStepResult {
-    status: string;
-    duration?: { seconds: number; nanos: number };
+    status: 'passed' | 'failed' | 'pending' | 'skipped' | string;
+    /** duration in milliseconds */
+    duration?: number;
     message?: string;
+    exception?: Error;
 }
 
 export interface TestCaseHookParams {
@@ -48,31 +58,66 @@ export interface TestCaseHookParams {
 export interface TestStepHookParams {
     gherkinDocument: GherkinDocument;
     pickle: Pickle;
+    pickleStep: PickleStep;
     testCaseStartedId: string;
+    testStepId: string;
+    willBeRetried?: boolean;
     result?: TestStepResult;
     error?: Error;
 }
 
+export type AttachOptions = string | { mediaType?: string; name?: string };
+
 export interface WorldOptions {
     log: (...args: any[]) => void;
-    attach: (data: string, mediaType?: string) => void;
+    attach: (data: string, options?: AttachOptions) => void;
     link: (url: string, text?: string) => void;
 }
 
 export class World {
     log(...args: any[]): void;
-    attach(data: string, mediaType?: string): void;
+    attach(data: string, options?: AttachOptions): void;
     link(url: string, text?: string): void;
     executeStep(text: string, argument?: DataTable | string): void;
     constructor(options: WorldOptions);
 }
 
-type StepFn<W extends World = World> = (this: W, ...args: any[]) => any;
+export type StepFn<W extends World = World, A extends any[] = any[]> = (this: W, ...args: A) => any;
 
-export function defineStep<W extends World = World>(keyword: string, expression: Expression, fn: StepFn<W>): void;
-export function Given<W extends World = World>(expression: Expression, fn: StepFn<W>): void;
-export function When<W extends World = World>(expression: Expression, fn: StepFn<W>): void;
-export function Then<W extends World = World>(expression: Expression, fn: StepFn<W>): void;
+export interface StepOptions {
+    /** Cypress command timeout (ms) applied to commands of the step */
+    timeout?: number;
+}
+
+export function defineStep<W extends World = World, A extends any[] = any[]>(
+    keyword: string,
+    expression: Expression,
+    fn: StepFn<W, A>
+): void;
+export function defineStep<W extends World = World, A extends any[] = any[]>(
+    keyword: string,
+    expression: Expression,
+    options: StepOptions,
+    fn: StepFn<W, A>
+): void;
+export function Given<W extends World = World, A extends any[] = any[]>(expression: Expression, fn: StepFn<W, A>): void;
+export function Given<W extends World = World, A extends any[] = any[]>(
+    expression: Expression,
+    options: StepOptions,
+    fn: StepFn<W, A>
+): void;
+export function When<W extends World = World, A extends any[] = any[]>(expression: Expression, fn: StepFn<W, A>): void;
+export function When<W extends World = World, A extends any[] = any[]>(
+    expression: Expression,
+    options: StepOptions,
+    fn: StepFn<W, A>
+): void;
+export function Then<W extends World = World, A extends any[] = any[]>(expression: Expression, fn: StepFn<W, A>): void;
+export function Then<W extends World = World, A extends any[] = any[]>(
+    expression: Expression,
+    options: StepOptions,
+    fn: StepFn<W, A>
+): void;
 
 type TestCaseHookFn = (this: World, params: TestCaseHookParams) => any;
 type TestStepHookFn = (this: World, params: TestStepHookParams) => any;
@@ -85,6 +130,7 @@ export interface TestCaseHookOptions {
 
 export interface TestStepHookOptions {
     tags?: string;
+    name?: string;
 }
 
 export function Before(fn: TestCaseHookFn): void;

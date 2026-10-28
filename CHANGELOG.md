@@ -14,6 +14,28 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 :microscope: - experimental
 
+## [2.1.0]
+- :rocket: added `createCucumberPreprocessor({ mode, tags })` to configure the preprocessor without environment variables
+- :rocket: undefined steps now fail with a ready-to-use step definition snippet; ambiguous steps list matching patterns
+- :rocket: feature files are watched in `cypress open` and rerun on change
+- :rocket: `After` and `AfterStep` hooks receive `error`; step hooks receive `pickleStep` and `testStepId`
+- :rocket: added `setupCucumber(on, config, options)`: excludes feature files without scenarios matching tags and writes Cucumber messages report (`messages` option)
+- :rocket: added step options: `When(pattern, { timeout }, fn)`
+- :rocket: added `@only`, `@skip` and Cypress configuration tags (e.g. `@retries(2)`)
+- :rocket: errors include feature file location; Gherkin parse errors include file path
+- :rocket: step definitions accept argument types via generics
+- :rocket: `pickle.uri` and `gherkinDocument.uri` are relative to project root
+- :beetle: fixed `BeforeStep`/`AfterStep` with `tags` option throwing `TypeError`
+- :beetle: hooks now receive actual `gherkinDocument` instead of list of pickles
+- :beetle: `it` mode: fixed hooks receiving wrong pickle for scenarios with duplicate names
+- :beetle: `it` mode: `AfterStep` on failure reports the failed step instead of the last one; `Before` hook failure no longer skips the rest of the feature
+- :beetle: `describe` mode: `AfterStep` receives step result instead of accumulated scenario result; step hooks are not run for skipped steps; failed attempt no longer skips the retry
+- :beetle: `describe` mode: undefined step after a failure is reported as skipped
+- :beetle: `World` instance no longer has `executeStep` patched onto user's class prototype
+- :pencil: browser runtime is bundled with esbuild and shared between modes; `.js` support files are transpiled with esbuild instead of babel
+- :pencil: added ESLint, Prettier and Dependabot
+- :pencil: added `peerDependencies` on cypress and `engines` (Node.js >= 22); added unit tests and type checking to CI; publish runs tests first and uses npm provenance
+
 ## [2.0.0]
 - :rocket: migrated package to ESM (`"type": "module"`); all `require`/`module.exports` usages converted to `import`/`export`
 - :pencil: updated @cucumber/cucumber-expressions, @cucumber/gherkin, @cucumber/tag-expressions, @cypress/webpack-preprocessor, ts-loader, cypress
@@ -68,7 +90,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [1.4.0]
 - :rocket: added `Template` utility function
 ```typescript
-import { When, Template } from '@qavajs/playwright-runner-adapter';
+import { When, Template } from '@qavajs/cypress-runner-adapter';
 
 When('I click {string} and verify {string}', Template((locator, expected) => `
     I click '${locator}'

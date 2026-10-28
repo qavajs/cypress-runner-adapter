@@ -1,7 +1,7 @@
 Feature: real test
 
-  Scenario Outline: search in wikipedia <searchTerm>
-    Given open 'https://en.wikipedia.org/' url
+  Scenario Outline: search <searchTerm>
+    Given open 'test/fixtures/search.html' url
     When search '<searchTerm>'
     Then title should be '<searchTerm>'
 
@@ -11,8 +11,8 @@ Feature: real test
       | JavaScript |
       | TypeScript |
 
-  Scenario Outline: search in wikipedia by template <searchTerm>
-    When search in wikipedia '<searchTerm>'
+  Scenario Outline: search by template <searchTerm>
+    When search in catalog '<searchTerm>'
     Then title should be '<searchTerm>'
 
     Examples:

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Search fixture</title>
+</head>
+<body>
+<input id="search" type="search" placeholder="Search" autocomplete="off">
+<ul id="options"></ul>
+<h1 class="page-title" hidden></h1>
+<script>
+    const articles = ['Cucumber', 'JavaScript', 'TypeScript', 'Gherkin'];
+    const input = document.getElementById('search');
+    const options = document.getElementById('options');
+    const title = document.querySelector('.page-title');
+    input.addEventListener('input', () => {
+        options.innerHTML = '';
+        const term = input.value.toLowerCase();
+        for (const article of articles.filter(article => term && article.toLowerCase().startsWith(term))) {
+            const option = document.createElement('li');
+            option.setAttribute('role', 'option');
+            option.textContent = article;
+            option.addEventListener('click', () => {
+                options.innerHTML = '';
+                title.textContent = article;
+                title.hidden = false;
+            });
+            options.appendChild(option);
+        }
+    });
+</script>
+</body>
+</html>
