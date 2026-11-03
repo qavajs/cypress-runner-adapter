@@ -24,11 +24,16 @@ Feature: test feature
     When simple step
     Then simple step
 
+  @pickleCheck
   Scenario: duplicate
     Given log
+    Then current scenario should have 3 steps
 
+  @pickleCheck
   Scenario: duplicate
     Given log
+    Given log
+    Then current scenario should have 4 steps
 
   Scenario: world
     When modify value from world
@@ -103,3 +108,20 @@ Feature: test feature
   Scenario: skipped
     When skipped step    
     And simple step
+  @retries(1) @retry
+  Scenario: retry
+    Given simple step
+    When fail on first attempt
+    Then retry should have been reported
+
+  Scenario: step timeout
+    When step with timeout
+    Then command timeout should be restored
+
+  @viewportWidth(800)
+  Scenario: config tag
+    Then viewport width should be 800
+
+  @skip
+  Scenario: skipped by tag
+    When fail

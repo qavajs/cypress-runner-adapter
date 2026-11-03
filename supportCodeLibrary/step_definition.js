@@ -5,28 +5,29 @@ import { parseStepArgument } from './step_argument.js';
 
 export default class StepDefinition extends Definition {
     constructor(data) {
-        super(data)
-        this.keyword = data.keyword
-        this.pattern = data.pattern
-        this.expression = data.expression
+        super(data);
+        this.keyword = data.keyword;
+        this.pattern = data.pattern;
+        this.expression = data.expression;
+        this.options = data.options ?? {};
     }
 
     getInvocationParameters({ step, world }) {
-        const parameters = this.expression.match(step.text).map((arg) => arg.getValue(world))
+        const parameters = this.expression.match(step.text).map(arg => arg.getValue(world));
         if (doesHaveValue(step.argument)) {
             const argumentParameter = parseStepArgument(step.argument, {
-                dataTable: (arg) => new DataTable(arg),
-                docString: (arg) => arg.content,
-            })
-            parameters.push(argumentParameter)
+                dataTable: arg => new DataTable(arg),
+                docString: arg => arg.content
+            });
+            parameters.push(argumentParameter);
         }
         return {
             parameters,
-            validCodeLengths: [parameters.length, parameters.length + 1],
-        }
+            validCodeLengths: [parameters.length, parameters.length + 1]
+        };
     }
 
     matchesStepName(stepName) {
-        return doesHaveValue(this.expression.match(stepName))
+        return doesHaveValue(this.expression.match(stepName));
     }
 }

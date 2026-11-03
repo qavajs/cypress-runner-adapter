@@ -1,4 +1,13 @@
-import { After, AfterStep, Before, BeforeStep, BeforeAll, AfterAll, TestCaseHookParams, TestStepHookParams } from '../../../supportCodeLibrary/index';
+import {
+    After,
+    AfterStep,
+    Before,
+    BeforeStep,
+    BeforeAll,
+    AfterAll,
+    TestCaseHookParams,
+    TestStepHookParams
+} from '../../../supportCodeLibrary/index';
 
 BeforeAll(function () {
     cy.log('before all hook');
@@ -19,7 +28,7 @@ Before(function (params: TestCaseHookParams) {
 Before({ tags: '@tagged' }, function (params: TestCaseHookParams) {
     cy.log('before tagged');
     cy.wrap(params).should((p: TestCaseHookParams) => {
-        expect(p).to.have.property('gherkinDocument');
+        expect(p.gherkinDocument).to.have.nested.property('feature.name', 'test feature');
         expect(p).to.have.property('pickle');
         expect(p.error).to.be.undefined;
         expect(p.willBeRetried).to.equal(false);
@@ -53,4 +62,26 @@ Before({ name: 'named before' }, function () {
 
 After({ name: 'named after' }, function () {
     cy.log('named after hook');
+});
+
+BeforeStep({ tags: '@tagged' }, function (params: TestStepHookParams) {
+    cy.log('before step tagged');
+    cy.wrap(params).should((p: TestStepHookParams) => {
+        expect(p.gherkinDocument).to.have.nested.property('feature.name', 'test feature');
+        expect(p.pickleStep).to.have.property('text');
+        expect(p.testStepId).to.equal(p.pickleStep.id);
+    });
+});
+
+AfterStep({ tags: '@tagged' }, function (params: TestStepHookParams) {
+    cy.log('after step tagged');
+    cy.wrap(params).should((p: TestStepHookParams) => {
+        expect(p.pickleStep).to.have.property('text');
+        expect(p.result.status).to.equal('passed');
+        expect(p.result.duration).to.be.a('number');
+    });
+});
+
+Before({ tags: '@pickleCheck' }, function (this: any, { pickle }: TestCaseHookParams) {
+    this.pickle = pickle;
 });

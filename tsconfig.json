@@ -8,5 +8,5 @@
     "esModuleInterop": true,
     "types": ["cypress"]
   },
-  "include": ["test/cypress-ts/**/*.ts"]
+  "include": ["test/cypress-ts/**/*.ts", "index.d.ts", "adapter.d.ts", "supportCodeLibrary/index.d.ts"]
 }
