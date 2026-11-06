@@ -48,7 +48,8 @@ export default defineConfig({
             return setupCucumber(on, config, {
                 mode: 'describe',                    // 'describe' | 'it', default: MODE env variable or 'describe'
                 tags: '@smoke',                      // default: TAGS Cypress env (--env TAGS=...), then TAGS env variable
-                messages: 'reports/messages.ndjson'  // optional Cucumber messages report
+                messages: 'reports/messages.ndjson', // optional Cucumber messages report
+                scenarioSpecs: true                  // list each scenario as a separate spec in `cypress open`, default: SCENARIO_SPECS Cypress env, then SCENARIO_SPECS env variable
             });
         },
     },
@@ -57,7 +58,8 @@ export default defineConfig({
 
 Compared to registering the preprocessor directly, `setupCucumber`:
 - excludes feature files without scenarios matching `tags`, so Cypress does not open a browser for them;
-- writes a [Cucumber messages](#reports) report when `messages` is set.
+- writes a [Cucumber messages](#reports) report when `messages` is set;
+- lists each scenario as a separate spec in `cypress open` when `scenarioSpecs` is set (see [Scenario Specs](#scenario-specs)).
 
 `setupNodeEvents` must return the config returned by `setupCucumber`.
 
@@ -325,6 +327,45 @@ TAGS='@login or @auth' npx cypress run
 ```
 
 Alternatively pass `tags` to `createCucumberPreprocessor` (see [Options](#options)).
+
+## Scenario Specs
+
+Cypress lists and runs whole spec files. To run a single scenario from the Cypress UI, enable `scenarioSpecs`:
+
+```javascript
+setupNodeEvents(on, config) {
+    return setupCucumber(on, config, { scenarioSpecs: true });
+}
+```
+
+In `cypress open` the adapter generates a `.scenario` spec per scenario (and per Scenario Outline example row)
+in `cypress/scenarios/<feature path>/` and lists them instead of `.feature` files:
+
+```
+cypress/scenarios/cypress/feature/login.feature/
+├── successful login.scenario
+├── login with user admin.scenario
+└── login with user guest.scenario
+```
+
+- spec names are scenario names with characters that are special in file names or globs (`/`, `(`, `[`, `,`, ...) replaced by `_`;
+  duplicates (e.g. outline rows without `<placeholders>` in the title) are numbered `name - 1`, `name - 2`;
+- specs are kept in sync with feature files: added, renamed and removed scenarios appear in the list immediately,
+  and editing a feature reruns the opened scenario;
+- only scenarios matching `tags` are listed;
+- `cypress run` is not affected and still runs whole feature files.
+
+Pass a string to change the directory, e.g. `scenarioSpecs: 'tmp/scenarios'` (relative to project root).
+
+Without the option, the `SCENARIO_SPECS` Cypress env, then the `SCENARIO_SPECS` environment variable is used
+(`true`/`1` enables the default directory, `false`/`0` disables, any other value is a directory):
+
+```bash
+SCENARIO_SPECS=true npx cypress open
+npx cypress open --env SCENARIO_SPECS=tmp/scenarios
+```
+Generated specs should not be committed — add the directory to `.gitignore`.
+`BeforeAll`/`AfterAll` hooks and `Background` run for each scenario spec.
 
 ## Reports
 

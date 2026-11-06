@@ -15,6 +15,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 :microscope: - experimental
 
 ## [2.1.0]
+- :rocket: added `scenarioSpecs` option to `setupCucumber`: lists each scenario and Scenario Outline example row as a separate spec in `cypress open`
+- :rocket: `scenarioSpecs` can be set via `SCENARIO_SPECS` Cypress env or environment variable
 - :rocket: added `createCucumberPreprocessor({ mode, tags })` to configure the preprocessor without environment variables
 - :rocket: undefined steps now fail with a ready-to-use step definition snippet; ambiguous steps list matching patterns
 - :rocket: feature files are watched in `cypress open` and rerun on change
@@ -35,6 +37,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - :pencil: browser runtime is bundled with esbuild and shared between modes; `.js` support files are transpiled with esbuild instead of babel
 - :pencil: added ESLint, Prettier and Dependabot
 - :pencil: added `peerDependencies` on cypress and `engines` (Node.js >= 22); added unit tests and type checking to CI; publish runs tests first and uses npm provenance
+- :pencil: replaced ESLint with oxlint
 
 ## [2.0.0]
 - :rocket: migrated package to ESM (`"type": "module"`); all `require`/`module.exports` usages converted to `import`/`export`

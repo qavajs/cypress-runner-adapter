@@ -1,0 +1,58 @@
+{
+    "$schema": "./node_modules/oxlint/configuration_schema.json",
+    "ignorePatterns": [
+        "node_modules/",
+        "test/reports/",
+        "mochawesome-report/",
+        "cypress/"
+    ],
+    "categories": {
+        "correctness": "error"
+    },
+    "rules": {
+        "no-unused-vars": [
+            "error",
+            {
+                "args": "none"
+            }
+        ]
+    },
+    "overrides": [
+        {
+            "files": [
+                "adapter/**/*.js",
+                "test/unit/**/*.js",
+                "test/*.js"
+            ],
+            "env": {
+                "node": true
+            }
+        },
+        {
+            "files": [
+                "runtime/**/*.js",
+                "supportCodeLibrary/**/*.js",
+                "test/cypress/**/*.js",
+                "test/cypress-ts/**/*.ts"
+            ],
+            "env": {
+                "browser": true,
+                "mocha": true
+            },
+            "globals": {
+                "cy": "readonly",
+                "Cypress": "readonly",
+                "expect": "readonly"
+            }
+        },
+        {
+            "files": [
+                "test/cypress/**/*.js",
+                "test/cypress-ts/**/*.ts"
+            ],
+            "rules": {
+                "no-unused-expressions": "off"
+            }
+        }
+    ]
+}
