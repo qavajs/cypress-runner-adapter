@@ -10,9 +10,7 @@ updates:
           - '@cucumber/*'
       lint:
         patterns:
-          - 'eslint'
-          - '@eslint/*'
-          - 'globals'
+          - 'oxlint'
           - 'prettier'
   - package-ecosystem: github-actions
     directory: /

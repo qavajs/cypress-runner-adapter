@@ -16,6 +16,12 @@ export interface SetupCucumberOptions {
     tags?: string;
     /** path of cucumber messages (.ndjson) report relative to project root */
     messages?: string;
+    /**
+     * in `cypress open`, list each scenario (and each Scenario Outline example row) as a separate spec;
+     * a string sets the directory of generated specs relative to project root (default: cypress/scenarios);
+     * defaults to SCENARIO_SPECS Cypress env, then SCENARIO_SPECS env variable
+     */
+    scenarioSpecs?: boolean | string;
 }
 
 export type FilePreprocessor = (file: Cypress.FileObject) => Promise<string>;

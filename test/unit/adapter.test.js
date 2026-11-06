@@ -1,11 +1,11 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter, once } from 'node:events';
-import { mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import vm from 'node:vm';
-import { createCucumberPreprocessor, setupCucumber } from '../../adapter/index.js';
+import { createCucumberPreprocessor, setupCucumber, writeScenarioSpecs } from '../../adapter/index.js';
 
 const feature = `Feature: unit
   @smoke
@@ -30,9 +30,28 @@ const focusedFeature = `Feature: focus
     Given step
 `;
 
+const outlineFeature = `Feature: outline
+  Scenario Outline: user <user>
+    Given step
+
+    Examples:
+      | user  |
+      | admin |
+      | guest |
+
+  Scenario Outline: same/name
+    Given step
+
+    Examples:
+      | user  |
+      | admin |
+      | guest |
+`;
+
 let dir;
 before(() => {
     dir = mkdtempSync(join(tmpdir(), 'cypress-runner-adapter-'));
+    writeFileSync(join(dir, 'outline.feature'), outlineFeature);
     writeFileSync(join(dir, 'test.feature'), feature);
     writeFileSync(join(dir, 'focus.feature'), focusedFeature);
     writeFileSync(
@@ -162,7 +181,7 @@ test('setupCucumber excludes features without matching scenarios but keeps broke
         { tags: undefined }
     );
     assert.equal(typeof events['file:preprocessor'], 'function');
-    assert.deepEqual(config.excludeSpecPattern.sort(), ['*.hot-update.js', 'focus.feature'].sort());
+    assert.deepEqual(config.excludeSpecPattern.sort(), ['*.hot-update.js', 'focus.feature', 'outline.feature'].sort());
 });
 
 test('setupCucumber registers messages writer', () => {
@@ -186,4 +205,89 @@ test('setupCucumber registers messages writer', () => {
         ['meta', 'testRunStarted', 'pickle', 'testRunFinished']
     );
     assert.equal(envelopes[3].testRunFinished.success, true);
+});
+
+function setupScenarioSpecs(config, options = {}) {
+    return setupCucumber(() => {}, { projectRoot: dir, specPattern: '*.feature', env: {}, ...config }, options);
+}
+
+const scenarioSpecFiles = feature => readdirSync(join(dir, 'scenarios', feature)).sort();
+
+test('setupCucumber lists scenario specs in interactive mode', () => {
+    const config = setupScenarioSpecs({ isInteractive: true }, { scenarioSpecs: 'scenarios' });
+    assert.deepEqual(config.specPattern, ['*.feature', 'scenarios/**/*.scenario']);
+    assert.deepEqual(config.excludeSpecPattern, ['**/*.feature']);
+    assert.deepEqual(scenarioSpecFiles('outline.feature'), [
+        'same_name - 1.scenario',
+        'same_name - 2.scenario',
+        'user admin.scenario',
+        'user guest.scenario'
+    ]);
+    assert.deepEqual(scenarioSpecFiles('test.feature'), ['first.scenario', 'second.scenario']);
+    assert.deepEqual(scenarioSpecFiles('broken.feature'), ['(parse error).scenario']);
+    assert.deepEqual(JSON.parse(readFileSync(join(dir, 'scenarios/test.feature/first.scenario'), 'utf-8')), {
+        feature: 'test.feature'
+    });
+});
+
+test('setupCucumber lists only scenarios matching tags', () => {
+    setupScenarioSpecs({ isInteractive: true }, { scenarioSpecs: 'scenarios', tags: '@smoke' });
+    assert.deepEqual(scenarioSpecFiles('test.feature'), ['first.scenario']);
+    assert.deepEqual(scenarioSpecFiles('outline.feature'), []);
+});
+
+test('setupCucumber ignores scenarioSpecs in run mode', () => {
+    const config = setupScenarioSpecs({ isInteractive: false }, { scenarioSpecs: true });
+    assert.equal(config.specPattern, '*.feature');
+});
+
+test('setupCucumber reads scenarioSpecs from SCENARIO_SPECS env', () => {
+    let config = setupScenarioSpecs({ isInteractive: true, env: { SCENARIO_SPECS: 'scenarios' } });
+    assert.deepEqual(config.specPattern, ['*.feature', 'scenarios/**/*.scenario']);
+    config = setupScenarioSpecs({ isInteractive: true, env: { SCENARIO_SPECS: 'false' } });
+    assert.equal(config.specPattern, '*.feature');
+    process.env.SCENARIO_SPECS = 'scenarios';
+    try {
+        config = setupScenarioSpecs({ isInteractive: true });
+        assert.deepEqual(config.specPattern, ['*.feature', 'scenarios/**/*.scenario']);
+        config = setupScenarioSpecs({ isInteractive: true }, { scenarioSpecs: false });
+        assert.equal(config.specPattern, '*.feature');
+    } finally {
+        delete process.env.SCENARIO_SPECS;
+    }
+});
+
+test('preprocessor runs single scenario of scenario spec', async () => {
+    setupScenarioSpecs({ isInteractive: true }, { scenarioSpecs: 'scenarios' });
+    const preprocessor = { mode: 'it', projectRoot: dir };
+    assert.deepEqual(
+        titles(register(await preprocess(preprocessor, 'scenarios/outline.feature/user guest.scenario'))),
+        ['Scenario: user guest']
+    );
+    const outlineRow = register(await preprocess(preprocessor, 'scenarios/outline.feature/same_name - 2.scenario'));
+    assert.deepEqual(titles(outlineRow), ['Scenario: same/name']);
+    await assert.rejects(
+        preprocess(preprocessor, 'scenarios/broken.feature/(parse error).scenario'),
+        /Failed to parse broken\.feature/
+    );
+});
+
+test('writeScenarioSpecs syncs specs with feature', async () => {
+    setupScenarioSpecs({ isInteractive: true }, { scenarioSpecs: 'scenarios' });
+    const featurePath = join(dir, 'sync.feature');
+    const options = { outDir: join(dir, 'scenarios'), tags: '', projectRoot: dir };
+    writeFileSync(featurePath, 'Feature: sync\n  Scenario: a\n    Given step\n  Scenario: b\n    Given step\n');
+    writeScenarioSpecs(featurePath, options);
+    assert.deepEqual(scenarioSpecFiles('sync.feature'), ['a.scenario', 'b.scenario']);
+    writeFileSync(featurePath, 'Feature: sync\n  Scenario: a\n    Given step\n  Scenario: c\n    Given step\n');
+    writeScenarioSpecs(featurePath, options);
+    assert.deepEqual(scenarioSpecFiles('sync.feature'), ['a.scenario', 'c.scenario']);
+    writeFileSync(join(dir, 'scenarios/sync.feature/b.scenario'), JSON.stringify({ feature: 'sync.feature' }));
+    await assert.rejects(
+        preprocess({ projectRoot: dir }, 'scenarios/sync.feature/b.scenario'),
+        /Scenario 'b' is not found in sync\.feature/
+    );
+    rmSync(featurePath);
+    writeScenarioSpecs(featurePath, options);
+    assert.deepEqual(scenarioSpecFiles('sync.feature'), []);
 });
