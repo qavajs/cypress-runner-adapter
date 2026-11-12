@@ -1,7 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter, once } from 'node:events';
-import { mkdtempSync, writeFileSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import vm from 'node:vm';
@@ -290,4 +290,98 @@ test('writeScenarioSpecs syncs specs with feature', async () => {
     rmSync(featurePath);
     writeScenarioSpecs(featurePath, options);
     assert.deepEqual(scenarioSpecFiles('sync.feature'), []);
+});
+
+test('filters scenarios by name', async () => {
+    assert.deepEqual(titles(register(await preprocess({ mode: 'it', name: '^sec' }))), ['Scenario: second']);
+    assert.deepEqual(titles(register(await preprocess({ mode: 'it', name: /guest/ }, 'outline.feature'))), [
+        'Scenario: user guest'
+    ]);
+});
+
+test('filters scenarios by lines', async () => {
+    const lines = async (value, name = 'test.feature') =>
+        titles(register(await preprocess({ mode: 'it', projectRoot: dir, lines: value }, name)));
+    assert.deepEqual(await lines('test.feature:7'), ['Scenario: second']);
+    assert.deepEqual(await lines(['test.feature:3:7']), ['Scenario: first', 'Scenario: second']);
+    assert.deepEqual(await lines('test.feature'), ['Scenario: first', 'Scenario: second']);
+    assert.deepEqual(await lines('test.feature:4'), []);
+    assert.deepEqual(await lines('outline.feature:7'), []);
+    // scenario line selects all example rows, row line selects single row
+    assert.deepEqual(await lines('outline.feature:2, outline.feature:15', 'outline.feature'), [
+        'Scenario: user admin',
+        'Scenario: user guest',
+        'Scenario: same/name'
+    ]);
+    assert.deepEqual(await lines(`${join(dir, 'outline.feature')}:8`, 'outline.feature'), ['Scenario: user guest']);
+});
+
+test('reads name and lines filters from env variables', async () => {
+    process.env.SCENARIO_NAME = 'first';
+    process.env.SCENARIO_LINES = 'test.feature:3:7';
+    try {
+        assert.deepEqual(titles(register(await preprocess({ mode: 'it', projectRoot: dir }))), ['Scenario: first']);
+    } finally {
+        delete process.env.SCENARIO_NAME;
+        delete process.env.SCENARIO_LINES;
+    }
+});
+
+test('setupCucumber excludes features not selected by lines or name', () => {
+    const exclude = options =>
+        setupCucumber(
+            () => {},
+            { projectRoot: dir, specPattern: '*.feature', env: {} },
+            options
+        ).excludeSpecPattern.sort();
+    assert.deepEqual(exclude({ lines: 'test.feature:7' }), ['broken.feature', 'focus.feature', 'outline.feature']);
+    assert.deepEqual(exclude({ name: 'user' }), ['focus.feature', 'test.feature']);
+    const config = setupCucumber(
+        () => {},
+        { projectRoot: dir, specPattern: '*.feature', env: { SCENARIO_LINES: 'focus.feature' } },
+        {}
+    );
+    assert.deepEqual(config.excludeSpecPattern.sort(), ['broken.feature', 'outline.feature', 'test.feature']);
+});
+
+test('setupCucumber lists only scenarios selected by lines', () => {
+    setupScenarioSpecs({ isInteractive: true }, { scenarioSpecs: 'scenarios', lines: 'outline.feature:8' });
+    assert.deepEqual(scenarioSpecFiles('outline.feature'), ['user guest.scenario']);
+    assert.deepEqual(scenarioSpecFiles('test.feature'), []);
+});
+
+test('@skip(reason) skips scenario and shows reason in title', async () => {
+    mkdirSync(join(dir, 'skip'), { recursive: true });
+    writeFileSync(
+        join(dir, 'skip/skip.feature'),
+        `Feature: skip
+  @skip(JIRA-123)
+  Scenario: with reason
+    Given step
+
+  @skip
+  Scenario: without reason
+    Given step
+
+  @skip(ignored) @only
+  Scenario: focused
+    Given step
+`
+    );
+    for (const [mode, type] of [
+        ['it', 'it'],
+        ['describe', 'describe']
+    ]) {
+        const scenarios = register(await preprocess({ mode }, 'skip/skip.feature')).filter(
+            item => item.type === type && item.title.startsWith('Scenario')
+        );
+        assert.deepEqual(
+            scenarios.map(({ title, focus }) => [title, focus]),
+            [
+                ['Scenario: with reason (skipped: JIRA-123)', 'skip'],
+                ['Scenario: without reason', 'skip'],
+                ['Scenario: focused', 'only']
+            ]
+        );
+    }
 });

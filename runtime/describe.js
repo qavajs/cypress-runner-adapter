@@ -14,7 +14,7 @@ import {
 } from './common.js';
 import { recorder } from './messages.js';
 import { createLocator, withLocation } from './location.js';
-import { hasTag, tagConfig, withFocus } from './tags.js';
+import { hasTag, scenarioTitle, tagConfig, withFocus } from './tags.js';
 
 /**
  * Translate each scenario to mocha `describe` and each step/hook to `it`
@@ -38,7 +38,7 @@ export function runDescribe(gherkinDocument, pickles) {
 
     for (const pickle of pickles) {
         const suiteConfig = { testIsolation: false, ...tagConfig(pickle) };
-        withFocus(describe, pickle)('Scenario: ' + pickle.name, suiteConfig, function () {
+        withFocus(describe, pickle)(scenarioTitle(pickle), suiteConfig, function () {
             const world = createWorld();
             const scenarioLocation = locate(pickle);
             let skip = false;
