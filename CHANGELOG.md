@@ -14,7 +14,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 :microscope: - experimental
 
-## [Unreleased]
+## [2.2.0]
 - :rocket: added `name` and `lines` filters (`SCENARIO_NAME`, `SCENARIO_LINES` env) to run scenarios by name regexp or `path:line`
 - :rocket: `@skip(reason)` skips scenario and shows the reason in the test title
 - :rocket: typed `DataTable.hashes`/`rowsHash` keys, `defineParameterType` transformer result and World, and `Template` arguments
