@@ -4,8 +4,10 @@ export class DataTable {
     constructor(sourceTable: string[][] | { rows: { cells: { value: string }[] }[] });
     raw(): string[][];
     rows(): string[][];
-    hashes(): Record<string, string>[];
-    rowsHash(): Record<string, string>;
+    /** rows as objects keyed by header cells; `K` narrows header names */
+    hashes<K extends string = string>(): Record<K, string>[];
+    /** two-column table as object; `K` narrows first column values */
+    rowsHash<K extends string = string>(): Record<K, string>;
     transpose(): DataTable;
 }
 
@@ -144,15 +146,16 @@ export function AfterStep(options: TestStepHookOptions, fn: TestStepHookFn): voi
 export function BeforeAll(fn: TestRunHookFn): void;
 export function AfterAll(fn: TestRunHookFn): void;
 
-export interface ParameterTypeOption {
+export interface ParameterTypeOption<T = any, W extends World = World> {
     name: string;
-    regexp: RegExp;
-    transformer?: (...args: string[]) => any;
+    regexp: RegExp | string | readonly (RegExp | string)[];
+    /** receives capture groups of regexp, `this` is the World of the scenario */
+    transformer?: (this: W, ...args: string[]) => T;
     useForSnippets?: boolean;
     preferForRegexpMatch?: boolean;
 }
 
-export function defineParameterType(option: ParameterTypeOption): void;
+export function defineParameterType<T = any, W extends World = World>(option: ParameterTypeOption<T, W>): void;
 export function setWorldConstructor(world: new (...args: any[]) => World): void;
 export function setDefaultTimeout(milliseconds: number): void;
-export function Template(template: (...args: any[]) => string): (...args: any[]) => void;
+export function Template<A extends any[] = any[]>(template: (...args: A) => string): StepFn<World, A>;

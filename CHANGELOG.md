@@ -14,6 +14,11 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 :microscope: - experimental
 
+## [2.2.0]
+- :rocket: added `name` and `lines` filters (`SCENARIO_NAME`, `SCENARIO_LINES` env) to run scenarios by name regexp or `path:line`
+- :rocket: `@skip(reason)` skips scenario and shows the reason in the test title
+- :rocket: typed `DataTable.hashes`/`rowsHash` keys, `defineParameterType` transformer result and World, and `Template` arguments
+
 ## [2.1.0]
 - :rocket: added `scenarioSpecs` option to `setupCucumber`: lists each scenario and Scenario Outline example row as a separate spec in `cypress open`
 - :rocket: `scenarioSpecs` can be set via `SCENARIO_SPECS` Cypress env or environment variable

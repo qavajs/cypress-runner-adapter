@@ -4,6 +4,7 @@ Cypress preprocessor that compiles Gherkin `.feature` files into Cypress/Mocha t
 
 [![npm](https://img.shields.io/npm/v/@qavajs/cypress-runner-adapter)](https://www.npmjs.com/package/@qavajs/cypress-runner-adapter)
 [![license](https://img.shields.io/npm/l/@qavajs/cypress-runner-adapter)](LICENSE)
+[![Pull Request](https://github.com/qavajs/cypress-runner-adapter/actions/workflows/pull-request.yml/badge.svg)](https://github.com/qavajs/cypress-runner-adapter/actions/workflows/pull-request.yml)
 
 ## Installation
 
@@ -48,6 +49,8 @@ export default defineConfig({
             return setupCucumber(on, config, {
                 mode: 'describe',                    // 'describe' | 'it', default: MODE env variable or 'describe'
                 tags: '@smoke',                      // default: TAGS Cypress env (--env TAGS=...), then TAGS env variable
+                name: 'login',                       // scenario name regexp, default: SCENARIO_NAME Cypress env, then env variable
+                lines: 'cypress/feature/login.feature:12', // default: SCENARIO_LINES Cypress env, then env variable
                 messages: 'reports/messages.ndjson', // optional Cucumber messages report
                 scenarioSpecs: true                  // list each scenario as a separate spec in `cypress open`, default: SCENARIO_SPECS Cypress env, then SCENARIO_SPECS env variable
             });
@@ -57,13 +60,13 @@ export default defineConfig({
 ```
 
 Compared to registering the preprocessor directly, `setupCucumber`:
-- excludes feature files without scenarios matching `tags`, so Cypress does not open a browser for them;
+- excludes feature files without scenarios matching `tags`, `name` and `lines`, so Cypress does not open a browser for them;
 - writes a [Cucumber messages](#reports) report when `messages` is set;
 - lists each scenario as a separate spec in `cypress open` when `scenarioSpecs` is set (see [Scenario Specs](#scenario-specs)).
 
 `setupNodeEvents` must return the config returned by `setupCucumber`.
 
-`createCucumberPreprocessor({ mode, tags })` creates just the preprocessor, if you need to combine it with another one.
+`createCucumberPreprocessor({ mode, tags, name, lines })` creates just the preprocessor, if you need to combine it with another one.
 
 Feature files are watched in `cypress open`, so edits rerun the spec automatically.
 
@@ -158,6 +161,16 @@ When<CustomWorld, [string, number]>('I add {string} {int} times', function (item
 });
 ```
 
+Data table cells are always strings, but column names can be narrowed:
+
+```typescript
+When('I fill the form', function (table: DataTable) {
+    for (const { field, value } of table.hashes<'field' | 'value'>()) {
+        cy.get(field).type(value);
+    }
+});
+```
+
 ## Hooks
 
 All standard Cucumber hooks are supported. Hooks receive a `params` object with context about the current test.
@@ -231,6 +244,18 @@ defineParameterType({
 // When('I select {color} theme', function (color) { ... });
 ```
 
+`transformer` is called with the scenario World as `this`. In TypeScript, generics type its result and World:
+
+```typescript
+defineParameterType<{ hex: string }, CustomWorld>({
+    name: 'themeColor',
+    regexp: /red|blue|green/,
+    transformer(color) {
+        return { hex: this.palette[color] };
+    }
+});
+```
+
 ## World
 
 The `World` class is instantiated for each scenario and is available as `this` inside step definitions and hooks. Extend it to share state across steps within a scenario.
@@ -280,13 +305,19 @@ When('I search for {string} on Wikipedia', Template(term => `
 `));
 ```
 
+In TypeScript, pass argument types as generic: `Template<[string]>(term => ...)`.
+
 ## Special Tags
 
 | Tag | Effect |
 |---|---|
 | `@only` | Run only scenarios tagged with `@only` in the spec (`describe.only` / `it.only`) |
 | `@skip` | Skip scenario (`describe.skip` / `it.skip`) |
+| `@skip(<reason>)` | Skip scenario and show the reason in the title, e.g. `@skip(JIRA-123)` → `Scenario: login (skipped: JIRA-123)` |
 | `@<config>(<value>)` | Override Cypress test configuration, e.g. `@retries(2)`, `@viewportWidth(800)`, `@defaultCommandTimeout(10000)` |
+
+Gherkin tags cannot contain whitespace, so a skip reason is a single token like `@skip(JIRA-123)` or `@skip(flaky_on_ci)`.
+Tag expressions match whole tags: `not @skip` does not exclude `@skip(JIRA-123)`.
 
 Configuration tags accept any option known to `Cypress.config()`; values are parsed as JSON, otherwise passed as strings.
 Options that Cypress allows only at suite level (e.g. `testIsolation`) work only in `describe` mode.
@@ -327,6 +358,27 @@ TAGS='@login or @auth' npx cypress run
 ```
 
 Alternatively pass `tags` to `createCucumberPreprocessor` (see [Options](#options)).
+
+## Running Specific Scenarios
+
+Run scenarios whose name matches a regular expression with `SCENARIO_NAME`, or scenarios at specific lines with `SCENARIO_LINES`
+(the same as Cucumber's `--name` and `path:line`):
+
+```bash
+SCENARIO_NAME='^login' npx cypress run
+SCENARIO_LINES=cypress/feature/login.feature:12 npx cypress run
+SCENARIO_LINES='cypress/feature/login.feature:12:30,cypress/feature/cart.feature' npx cypress run
+npx cypress run --env SCENARIO_LINES=cypress/feature/login.feature:12
+```
+
+- a line selects the scenario declared on it; for a Scenario Outline, the `Scenario Outline:` line selects all examples
+  and an example row line selects that row;
+- a path without a line selects the whole file; paths are relative to the project root;
+- with `setupCucumber`, feature files without selected scenarios are excluded, so Cypress opens only the needed specs;
+- filters combine with `TAGS`: a scenario must match all of them.
+
+Cypress splits `--env` values on commas, so list several files in the `SCENARIO_LINES` environment variable
+or the `lines` option (string or array) instead.
 
 ## Scenario Specs
 
@@ -400,3 +452,7 @@ npx cypress run
 MODE=it npx cypress run
 MODE=it npx cypress open
 ```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for running the test suite locally.

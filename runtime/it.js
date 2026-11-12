@@ -13,7 +13,7 @@ import {
 } from './common.js';
 import { recorder } from './messages.js';
 import { createLocator, withLocation } from './location.js';
-import { tagConfig, withFocus } from './tags.js';
+import { scenarioTitle, tagConfig, withFocus } from './tags.js';
 
 function getResult(currentTest, stepStatus) {
     return {
@@ -123,7 +123,7 @@ export function runIt(gherkinDocument, pickles) {
     });
 
     for (const pickle of pickles) {
-        withFocus(it, pickle)('Scenario: ' + pickle.name, tagConfig(pickle), function () {
+        withFocus(it, pickle)(scenarioTitle(pickle), tagConfig(pickle), function () {
             this.test.body = renderGherkinTest(pickle.steps);
             const world = createWorld();
             const scenario = (current = {

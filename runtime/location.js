@@ -32,7 +32,10 @@ export function createLocator(gherkinDocument) {
  * Append feature file location to error message
  */
 export function withLocation(error, location) {
-    if (error && !error.qavajsLocation) {
+    if (!error) return error;
+    // steps/hooks may throw a non-Error value; wrap it so location can still be attached
+    if (typeof error !== 'object') return withLocation(new Error(String(error)), location);
+    if (!error.qavajsLocation) {
         error.qavajsLocation = location;
         error.message = `${error.message}\n\n    at ${location}`;
     }

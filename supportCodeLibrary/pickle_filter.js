@@ -1,5 +1,5 @@
 import { doesHaveValue, doesNotHaveValue } from './value_checker.js';
-import parse from '@cucumber/tag-expressions';
+import { parse } from '@cucumber/tag-expressions';
 
 export class PickleTagFilter {
     constructor(tagExpression) {

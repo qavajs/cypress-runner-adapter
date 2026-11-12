@@ -51,13 +51,71 @@ function getRuntimeSource() {
     return runtimeSource;
 }
 
+function lineEntries(lines) {
+    return (Array.isArray(lines) ? lines : String(lines ?? '').split(',')).map(entry => entry.trim()).filter(Boolean);
+}
+
+/**
+ * Parse `path:line[:line...]` entries; path without line selects the whole file
+ * @param {string | string[]} [lines] - array or comma-separated string
+ * @param {string} projectRoot
+ * @returns {Map<string, Set<number> | null> | null} feature uri to selected lines (null - all lines)
+ */
+export function parseLines(lines, projectRoot) {
+    const entries = lineEntries(lines);
+    if (entries.length === 0) return null;
+    const selection = new Map();
+    for (const entry of entries) {
+        const [, path, suffix] = entry.match(/^(.*?)((?::\d+)*)$/);
+        const uri = relative(projectRoot, resolve(projectRoot, path));
+        const numbers = suffix.split(':').filter(Boolean).map(Number);
+        if (numbers.length === 0 || selection.get(uri) === null) {
+            selection.set(uri, null);
+            continue;
+        }
+        const selected = selection.get(uri) ?? new Set();
+        numbers.forEach(line => selected.add(line));
+        selection.set(uri, selected);
+    }
+    return selection;
+}
+
+/**
+ * Line of scenario and of each example row by ast node id
+ * @param {object} gherkinDocument
+ * @returns {Map<string, number>}
+ */
+function astNodeLines(gherkinDocument) {
+    const result = new Map();
+    const visit = children => {
+        for (const { scenario, rule } of children ?? []) {
+            if (rule) visit(rule.children);
+            if (!scenario) continue;
+            result.set(scenario.id, scenario.location.line);
+            for (const examples of scenario.examples) {
+                for (const row of examples.tableBody) result.set(row.id, row.location.line);
+            }
+        }
+    };
+    visit(gherkinDocument.feature?.children);
+    return result;
+}
+
+/**
+ * @typedef {object} PickleFilter
+ * @property {string} [tags] - tag expression
+ * @property {string | RegExp} [name] - regular expression matched against scenario name
+ * @property {string | string[]} [lines] - `path:line` entries, see {@link parseLines}
+ */
+
 /**
  * Parse feature file and compile its pickles
  * @param {string} filePath - absolute path of .feature file
- * @param {string} [tags] - tag expression to filter pickles
+ * @param {string | PickleFilter} [filter] - tag expression or filter of pickles
  * @param {string} [projectRoot] - root that feature uri is relative to
  */
-export function loadFeature(filePath, tags = '', projectRoot = process.cwd()) {
+export function loadFeature(filePath, filter = '', projectRoot = process.cwd()) {
+    const { tags = '', name, lines } = typeof filter === 'string' ? { tags: filter } : filter;
     const uri = relative(projectRoot, filePath);
     const source = readFileSync(filePath, 'utf-8');
     const parser = new Parser(new AstBuilder(uuidFn), new GherkinClassicTokenMatcher());
@@ -70,10 +128,22 @@ export function loadFeature(filePath, tags = '', projectRoot = process.cwd()) {
     }
     gherkinDocument.uri = uri;
     const tagExpression = tagExpressionParser(tags);
-    const pickles = compile(gherkinDocument, uri, uuidFn).filter(pickle =>
-        tagExpression.evaluate(pickle.tags.map(tag => tag.name))
+    const nameExpression = name ? new RegExp(name) : null;
+    const selection = parseLines(lines, projectRoot);
+    if (selection && !selection.has(uri)) return { source, gherkinDocument, pickles: [] };
+    const selectedLines = selection?.get(uri);
+    const nodeLines = selectedLines ? astNodeLines(gherkinDocument) : null;
+    const pickles = compile(gherkinDocument, uri, uuidFn).filter(
+        pickle =>
+            tagExpression.evaluate(pickle.tags.map(tag => tag.name)) &&
+            (!nameExpression || nameExpression.test(pickle.name)) &&
+            (!selectedLines || pickle.astNodeIds.some(id => selectedLines.has(nodeLines.get(id))))
     );
     return { source, gherkinDocument, pickles };
+}
+
+function hasFilter({ tags, name, lines }) {
+    return Boolean(tags || name || lineEntries(lines).length > 0);
 }
 
 function adapter({ source, gherkinDocument, pickles }, { mode, messages }) {
@@ -148,17 +218,21 @@ export function scenarioSpecs(pickles) {
  * @param {string} featurePath - absolute path of .feature file
  * @param {object} options
  * @param {string} options.outDir - absolute path of scenario specs directory
- * @param {string} options.tags - tag expression to filter scenarios
+ * @param {string} [options.tags] - tag expression to filter scenarios
+ * @param {string | RegExp} [options.name] - regular expression to filter scenarios by name
+ * @param {string | string[]} [options.lines] - `path:line` entries to filter scenarios
  * @param {string} options.projectRoot - root that feature uri is relative to
  * @returns {string[]} spec file names
  */
-export function writeScenarioSpecs(featurePath, { outDir, tags, projectRoot }) {
+export function writeScenarioSpecs(featurePath, { outDir, projectRoot, ...filter }) {
     const uri = relative(projectRoot, featurePath);
     const dir = join(outDir, uri);
     let files = [];
     if (existsSync(featurePath)) {
         try {
-            files = scenarioSpecs(loadFeature(featurePath, tags, projectRoot).pickles).map(({ fileName }) => fileName);
+            files = scenarioSpecs(loadFeature(featurePath, filter, projectRoot).pickles).map(
+                ({ fileName }) => fileName
+            );
         } catch {
             files = [PARSE_ERROR_SPEC];
         }
@@ -180,11 +254,12 @@ export function writeScenarioSpecs(featurePath, { outDir, tags, projectRoot }) {
  * Generate scenario specs for feature files and keep them in sync with features
  * @returns {string} glob of scenario specs relative to project root
  */
-function setupScenarioSpecs(features, { outDir, tags, projectRoot }) {
+function setupScenarioSpecs(features, options) {
+    const { outDir, projectRoot } = options;
     for (const file of globSync(`**/*${SCENARIO_EXT}`, { cwd: outDir })) {
         rmSync(join(outDir, file), { force: true });
     }
-    for (const feature of features) writeScenarioSpecs(feature, { outDir, tags, projectRoot });
+    for (const feature of features) writeScenarioSpecs(feature, options);
     const timers = new Map();
     for (const dir of new Set(features.map(feature => dirname(feature)))) {
         watch(dir, (event, fileName) => {
@@ -193,7 +268,7 @@ function setupScenarioSpecs(features, { outDir, tags, projectRoot }) {
             clearTimeout(timers.get(featurePath));
             timers.set(
                 featurePath,
-                setTimeout(() => writeScenarioSpecs(featurePath, { outDir, tags, projectRoot }), 100)
+                setTimeout(() => writeScenarioSpecs(featurePath, options), 100)
             );
         }).unref();
     }
@@ -205,6 +280,10 @@ function setupScenarioSpecs(features, { outDir, tags, projectRoot }) {
  * @param {object} [options]
  * @param {'describe' | 'it'} [options.mode] - translation mode (default: MODE env variable or 'describe')
  * @param {string} [options.tags] - tag expression to filter scenarios (default: TAGS env variable)
+ * @param {string | RegExp} [options.name] - regular expression to filter scenarios by name
+ * (default: SCENARIO_NAME env variable)
+ * @param {string | string[]} [options.lines] - `path:line` entries to filter scenarios
+ * (default: SCENARIO_LINES env variable)
  * @param {boolean} [options.messages] - record cucumber messages (requires `setupCucumber` with `messages` option)
  * @param {string} [options.projectRoot] - root that feature uris are relative to (default: current working directory)
  */
@@ -218,21 +297,25 @@ export function createCucumberPreprocessor(options = {}) {
         if (!MODES.includes(mode)) {
             throw new Error(`Unknown mode '${mode}'. Expected one of: ${MODES.join(', ')}`);
         }
-        const tags = options.tags ?? process.env.TAGS ?? '';
+        const filter = {
+            tags: options.tags ?? process.env.TAGS ?? '',
+            name: options.name ?? process.env.SCENARIO_NAME,
+            lines: options.lines ?? process.env.SCENARIO_LINES
+        };
+        const projectRoot = options.projectRoot ?? process.cwd();
         let feature;
         let featurePath = filePath;
         if (filePath.endsWith(SCENARIO_EXT)) {
-            const projectRoot = options.projectRoot ?? process.cwd();
             const { feature: uri } = JSON.parse(readFileSync(filePath, 'utf-8'));
             featurePath = resolve(projectRoot, uri);
-            feature = loadFeature(featurePath, tags, projectRoot);
+            feature = loadFeature(featurePath, filter, projectRoot);
             const spec = scenarioSpecs(feature.pickles).find(({ fileName }) => fileName === basename(filePath));
             if (!spec) {
                 throw new Error(`Scenario '${basename(filePath, SCENARIO_EXT)}' is not found in ${uri}`);
             }
             feature.pickles = [spec.pickle];
         } else {
-            feature = loadFeature(filePath, tags, options.projectRoot);
+            feature = loadFeature(filePath, filter, projectRoot);
         }
         mkdirSync(dirname(outputPath), { recursive: true });
         writeFileSync(outputPath, adapter(feature, { mode, messages: Boolean(options.messages) }), 'utf-8');
@@ -247,14 +330,18 @@ function featureFiles(config) {
 }
 
 /**
- * Feature files matched by spec pattern that have no scenarios matching tag expression
+ * Feature files matched by spec pattern that have no scenarios matching filter
+ * @param {object} config
+ * @param {string | PickleFilter} filter - tag expression or filter of pickles
  * @returns {string[]} paths relative to project root
  */
-export function featuresWithoutMatchingScenarios(config, tags) {
+export function featuresWithoutMatchingScenarios(config, filter) {
     const projectRoot = config.projectRoot ?? process.cwd();
+    const selection = typeof filter === 'string' ? null : parseLines(filter.lines, projectRoot);
     return featureFiles(config).filter(file => {
+        if (selection && !selection.has(relative(projectRoot, resolve(projectRoot, file)))) return true;
         try {
-            return loadFeature(resolve(projectRoot, file), tags, projectRoot).pickles.length === 0;
+            return loadFeature(resolve(projectRoot, file), filter, projectRoot).pickles.length === 0;
         } catch {
             // keep unparsable features so preprocessor reports the error
             return false;
@@ -283,6 +370,10 @@ function parseScenarioSpecs(value) {
  * @param {object} [options]
  * @param {'describe' | 'it'} [options.mode] - translation mode (default: MODE env variable or 'describe')
  * @param {string} [options.tags] - tag expression (default: TAGS Cypress env, then TAGS env variable)
+ * @param {string | RegExp} [options.name] - regular expression to filter scenarios by name
+ * (default: SCENARIO_NAME Cypress env, then SCENARIO_NAME env variable)
+ * @param {string | string[]} [options.lines] - `path:line` entries to filter scenarios
+ * (default: SCENARIO_LINES Cypress env, then SCENARIO_LINES env variable)
  * @param {string} [options.messages] - path of cucumber messages .ndjson report relative to project root
  * @param {boolean | string} [options.scenarioSpecs] - in `cypress open`, list each scenario as a separate spec;
  * string sets directory of generated specs relative to project root (default: cypress/scenarios);
@@ -290,7 +381,11 @@ function parseScenarioSpecs(value) {
  * @returns {Cypress.PluginConfigOptions}
  */
 export function setupCucumber(on, config, options = {}) {
-    const tags = options.tags ?? config.env?.TAGS ?? process.env.TAGS ?? '';
+    const filter = {
+        tags: options.tags ?? config.env?.TAGS ?? process.env.TAGS ?? '',
+        name: options.name ?? config.env?.SCENARIO_NAME ?? process.env.SCENARIO_NAME ?? '',
+        lines: options.lines ?? config.env?.SCENARIO_LINES ?? process.env.SCENARIO_LINES ?? ''
+    };
     const projectRoot = config.projectRoot ?? process.cwd();
     if (options.messages) {
         registerMessagesWriter(on, resolve(projectRoot, options.messages));
@@ -299,7 +394,7 @@ export function setupCucumber(on, config, options = {}) {
         'file:preprocessor',
         createCucumberPreprocessor({
             mode: options.mode,
-            tags,
+            ...filter,
             messages: Boolean(options.messages),
             projectRoot
         })
@@ -310,15 +405,15 @@ export function setupCucumber(on, config, options = {}) {
     if (scenarioSpecs && config.isInteractive) {
         const dir = typeof scenarioSpecs === 'string' ? scenarioSpecs : DEFAULT_SCENARIO_SPECS_DIR;
         const features = featureFiles(config).map(file => resolve(projectRoot, file));
-        const pattern = setupScenarioSpecs(features, { outDir: resolve(projectRoot, dir), tags, projectRoot });
+        const pattern = setupScenarioSpecs(features, { outDir: resolve(projectRoot, dir), projectRoot, ...filter });
         config.specPattern = [...toArray(config.specPattern), pattern];
         config.excludeSpecPattern = [...toArray(config.excludeSpecPattern), '**/*.feature'];
         return config;
     }
-    if (tags) {
+    if (hasFilter(filter)) {
         config.excludeSpecPattern = [
             ...toArray(config.excludeSpecPattern),
-            ...featuresWithoutMatchingScenarios(config, tags)
+            ...featuresWithoutMatchingScenarios(config, filter)
         ];
     }
     return config;
