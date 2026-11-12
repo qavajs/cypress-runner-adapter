@@ -15,10 +15,15 @@ export default class StepDefinition extends Definition {
     getInvocationParameters({ step, world }) {
         const parameters = this.expression.match(step.text).map(arg => arg.getValue(world));
         if (doesHaveValue(step.argument)) {
-            const argumentParameter = parseStepArgument(step.argument, {
-                dataTable: arg => new DataTable(arg),
-                docString: arg => arg.content
-            });
+            // World#executeStep accepts a DataTable instance or plain string directly;
+            // pickle steps carry the raw gherkin argument shape ({ dataTable } / { docString })
+            const argumentParameter =
+                step.argument instanceof DataTable || typeof step.argument === 'string'
+                    ? step.argument
+                    : parseStepArgument(step.argument, {
+                          dataTable: arg => new DataTable(arg),
+                          docString: arg => arg.content
+                      });
             parameters.push(argumentParameter);
         }
         return {

@@ -24,7 +24,7 @@ jobs:
       - run: npm run format:check
       - run: npm run typecheck
       - run: npm run test:unit
-      - run: npm run test
+      - run: npm run test:e2e
       - run: npm run test:messages
       - run: npm run test:it
       - run: npm run test:ts

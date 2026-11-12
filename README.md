@@ -4,6 +4,7 @@ Cypress preprocessor that compiles Gherkin `.feature` files into Cypress/Mocha t
 
 [![npm](https://img.shields.io/npm/v/@qavajs/cypress-runner-adapter)](https://www.npmjs.com/package/@qavajs/cypress-runner-adapter)
 [![license](https://img.shields.io/npm/l/@qavajs/cypress-runner-adapter)](LICENSE)
+[![Pull Request](https://github.com/qavajs/cypress-runner-adapter/actions/workflows/pull-request.yml/badge.svg)](https://github.com/qavajs/cypress-runner-adapter/actions/workflows/pull-request.yml)
 
 ## Installation
 
@@ -400,3 +401,7 @@ npx cypress run
 MODE=it npx cypress run
 MODE=it npx cypress open
 ```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for running the test suite locally.
