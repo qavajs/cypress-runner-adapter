@@ -1,5 +1,6 @@
 import './hooks';
 import './parameter_types';
+import './capabilities';
 import {
     When,
     Given,

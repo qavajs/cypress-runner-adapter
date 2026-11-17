@@ -1,5 +1,6 @@
 import './hooks.js';
 import './parameter_types.js';
+import './capabilities.js';
 import { When, Given, Then, After, AfterStep, setWorldConstructor, Template, World } from '../../../supportCodeLibrary/index.js';
 
 class CustomWorld extends World {
