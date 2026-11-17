@@ -45,6 +45,26 @@ for (const testCaseStarted of started.values()) {
     assert.equal(count, testCase.testSteps.length, `every step of ${testCaseStarted.id} is finished once`);
 }
 
+const attachments = of('attachment');
+assert.ok(
+    attachments.some(({ fileName, mediaType }) => fileName === 'greeting.txt' && mediaType === 'text/plain'),
+    'named attachment is reported with file name'
+);
+assert.ok(
+    attachments.some(({ body, contentEncoding }) => body === 'aGVsbG8=' && contentEncoding === 'BASE64'),
+    'base64 data uri attachment keeps encoded body'
+);
+assert.ok(
+    attachments.some(
+        ({ body, mediaType, contentEncoding, fileName }) =>
+            body === '{"key":"value"}' &&
+            mediaType === 'application/json' &&
+            contentEncoding === 'IDENTITY' &&
+            fileName === 'data.json'
+    ),
+    'plain data uri attachment is decoded'
+);
+
 const statuses = {};
 for (const { testStepResult } of stepsFinished)
     statuses[testStepResult.status] = (statuses[testStepResult.status] ?? 0) + 1;
